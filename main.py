@@ -12,10 +12,10 @@ def read_distance_matrix(filename = "data/distance_matrix.txt"):
 number_city, distance_matrix = read_distance_matrix()
 
 # Param
-TOTAL_BEE = 10
+TOTAL_BEE = 100
 EMPLOYED_BEE_PERCENT = 0.5
-CIRCLE_LIMIT = 50
-MAX_CIRCLE = 500
+CIRCLE_LIMIT = 200
+MAX_CIRCLE = 10000
 
 circle = 1
 hive, min_dis, path_res, number_employed_bee, number_onlooker_bee = initial_hive(TOTAL_BEE, EMPLOYED_BEE_PERCENT, number_city, distance_matrix)
@@ -30,7 +30,7 @@ while circle <= MAX_CIRCLE:
             k = random.randint(0, number_employed_bee)
             while k == i:
                 k = random.randint(0, number_employed_bee)
-            tmp_dis, tmp_path = bee.modified_path(list(hive[k].path), distance_matrix, CIRCLE_LIMIT)
+            tmp_dis, tmp_path = bee.modified_path(hive[k].path, distance_matrix, CIRCLE_LIMIT)
             new_population.append(tmp_path)
             fitness.append(tmp_dis)
             if min_dis > tmp_dis:
@@ -59,7 +59,7 @@ while circle <= MAX_CIRCLE:
             k = random.randint(0, number_employed_bee)
             while k == idx_employed_bee:
                 k = random.randint(0, number_employed_bee)
-            tmp_dis, tmp_path = bee.modified_path(list(hive[k].path), distance_matrix, CIRCLE_LIMIT)
+            tmp_dis, tmp_path = bee.modified_path(hive[k].path, distance_matrix, CIRCLE_LIMIT)
             if min_dis > tmp_dis:
                 min_dis = tmp_dis
                 path_res = list(tmp_path)

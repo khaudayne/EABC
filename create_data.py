@@ -11,4 +11,4 @@ def generate_distance_matrix(n, minDis = 10, maxDis = 100, filename="data/distan
 
     print(f"Distance matrix saved to {filename}")
 
-generate_distance_matrix(10)
+generate_distance_matrix(50)

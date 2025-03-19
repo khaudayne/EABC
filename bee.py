@@ -20,7 +20,7 @@ class Bee:
         tmp_dis = total_distance(tmp_path_mutate, distance_matrix)
         if self.distance > tmp_dis:
             self.distance = tmp_dis
-            self.path = list(tmp_path_mutate)
+            self.path = tmp_path_mutate
             is_greater = True
         
         # 2-opt
@@ -29,7 +29,7 @@ class Bee:
         tmp_dis = total_distance(tmp_path_two_opt, distance_matrix)
         if self.distance > tmp_dis:
             self.distance = tmp_dis
-            self.path = list(tmp_path_two_opt)
+            self.path = tmp_path_two_opt
             is_greater = True
 
         # crossover 2 path
@@ -47,7 +47,7 @@ class Bee:
         tmp_dis = total_distance(tmp_path_cross_over, distance_matrix)
         if self.distance > tmp_dis:
             self.distance = tmp_dis
-            self.path = list(tmp_path_cross_over)
+            self.path = tmp_path_cross_over
             is_greater = True
 
         if not is_greater:
@@ -55,14 +55,14 @@ class Bee:
             if self.cycle >= CIRCLE_LIMIT:
                 self.role = 'S'
                 self.cycle = 0
-        return self.distance, list(self.path)
+        return self.distance, self.path
     
     def shuffer_path(self, distance_matrix): 
         random.shuffle(self.path)
         self.cycle = 0
         self.role = 'E'
         self.distance = total_distance(self.path, distance_matrix)
-        return self.distance, list(self.path)
+        return self.distance, self.path
 
 def initial_hive(number_bee, employed_bee_per, number_city, distance_matrix):
     # Khởi tạo list hive
@@ -81,10 +81,10 @@ def initial_hive(number_bee, employed_bee_per, number_city, distance_matrix):
         hive[i].distance = total_distance(hive[i].path, distance_matrix)
         if min_dis > hive[i].distance:
             min_dis = hive[i].distance
-            path_res = list(hive[i].path)
+            path_res = hive[i].path
 
     # Onlooker bee
     for i in range(number_onlooker_bee):
         hive[i + number_employed_bee].role = 'O'
 
-    return hive, min_dis, path_res, number_employed_bee, number_onlooker_bee
+    return hive, min_dis, list(path_res), number_employed_bee, number_onlooker_bee
