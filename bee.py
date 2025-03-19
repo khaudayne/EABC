@@ -50,7 +50,7 @@ class Bee:
             self.path = tmp_path_cross_over
             is_greater = True
 
-        if not is_greater:
+        if (not is_greater) and self.role == 'E':
             self.cycle += 1
             if self.cycle >= CIRCLE_LIMIT:
                 self.role = 'S'
