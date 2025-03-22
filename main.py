@@ -80,7 +80,3 @@ while circle <= MAX_CIRCLE:
 print("Process end after {} iterator with result: ".format(circle - 1))
 print("Min distance between cities: {}".format(min_dis))
 print("Route is: {}".format(path_res))
-
-
-
-
