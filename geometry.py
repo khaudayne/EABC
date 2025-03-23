@@ -1,4 +1,6 @@
-from shapely.geometry import Point, LineString
+from shapely.geometry import Point, LineString, Polygon
+from shapely.strtree import STRtree
+from shapely.ops import nearest_points
 
 def is_point_in_obstacle(point, obstacles):
     """
@@ -42,3 +44,22 @@ def min_distance_point_to_line(point, point1, point2):
     line = LineString([point1, point2])
     point_geom = Point(point)
     return point_geom.distance(line)
+
+obstacles = [
+    Polygon([(1, 1), (4, 1), (4, 4), (1, 4)]),  # Hình vuông (1,1) -> (4,4)
+    Polygon([(5, 5), (8, 5), (8, 8), (5, 8)]),  # Hình vuông (5,5) -> (8,8)
+    Polygon([(6, 1), (9, 1), (9, 3), (6, 3)])   # Hình chữ nhật (6,1) -> (9,3)
+]
+
+# Tạo đoạn thẳng
+line = LineString([(0, 0), (1, 10)])
+
+# Tạo đa giác
+polygon = Polygon([(2, 2), (2, 4), (4, 4), (4, 2)])
+
+# Tìm điểm gần nhất giữa đoạn thẳng và đa giác
+point_on_line, point_on_polygon = nearest_points(line, polygon)
+
+# Kết quả
+print("Điểm trên đoạn thẳng gần nhất với đa giác:", point_on_line)
+print("Điểm trên đa giác gần nhất với đoạn thẳng:", point_on_polygon)

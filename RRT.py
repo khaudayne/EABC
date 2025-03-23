@@ -1,8 +1,5 @@
 import random
-import matplotlib.pyplot as plt
-from shapely.geometry import Point, Polygon, LineString
-from read_map import read_map_from_file
-import time
+from shapely.geometry import LineString
 class Node:
     def __init__(self, x, y, parent=None):
         self.x = x
@@ -10,11 +7,11 @@ class Node:
         self.parent = parent
 
 class RRT:
-    def __init__(self, start, goal, map_size, obstacles, step_size=100, max_iter=5000, goal_sample_rate=0.2):
+    def __init__(self, start, goal, map_size, str_tree, step_size=50, max_iter=5000, goal_sample_rate=0.1):
         self.start = Node(*start)
         self.goal = Node(*goal)
         self.map_size = map_size
-        self.obstacles = [Polygon(obstacle) for obstacle in obstacles]
+        self.str_tree = str_tree
         self.step_size = step_size
         self.max_iter = max_iter
         self.goal_sample_rate = goal_sample_rate
@@ -30,7 +27,10 @@ class RRT:
 
     def is_collision_free(self, node1, node2):
         line = LineString([(node1.x, node1.y), (node2.x, node2.y)])
-        return all(not line.intersects(obstacle) for obstacle in self.obstacles)
+        candidates = self.str_tree.query(line)
+        if len(candidates) > 0:
+            return False
+        return True
 
     def steer(self, from_node, to_point):
         direction_x, direction_y = to_point[0] - from_node.x, to_point[1] - from_node.y
@@ -48,7 +48,8 @@ class RRT:
             rand_point = self.get_random_point()
             nearest = self.nearest_node(rand_point)
             new_node = self.steer(nearest, rand_point)
-            
+            if new_node == nearest:
+                continue
             if self.is_collision_free(nearest, new_node):
                 self.tree.append(new_node)
                 
@@ -64,40 +65,3 @@ class RRT:
             path.append((node.x, node.y))
             node = node.parent
         return path[::-1]
-
-    def plot(self, path=None):
-        fig, ax = plt.subplots()
-        ax.set_xlim(0, self.map_size[0])
-        ax.set_ylim(0, self.map_size[1])
-        
-        for obstacle in self.obstacles:
-            x, y = obstacle.exterior.xy
-            ax.fill(x, y, color='black')
-        
-        for node in self.tree:
-            if node.parent:
-                ax.plot([node.x, node.parent.x], [node.y, node.parent.y], 'g-', alpha=0.5)
-        
-        if path:
-            path_x, path_y = zip(*path)
-            ax.plot(path_x, path_y, 'r-', linewidth=2)
-        
-        ax.plot(self.start.x, self.start.y, 'bo', markersize=8, label="Start")
-        ax.plot(self.goal.x, self.goal.y, 'ro', markersize=8, label="Goal")
-        ax.legend()
-        plt.show()
-
-# Đọc dữ liệu từ file
-file_path = "data/map.txt"
-map_size, obstacles = read_map_from_file(file_path)
-start = (50, 50)
-goal = (450, 450)
-
-# Chạy thuật toán RRT
-start_time = time.time()
-rrt = RRT(start, goal, map_size, obstacles)
-path = rrt.find_path()
-end_time = time.time()
-print("TIME RUN PROCESS: {}".format(end_time - start_time))
-print(path)
-rrt.plot(path)
