@@ -6,6 +6,20 @@ class Node:
         self.y = y
         self.parent = parent
 
+### Class tìm đường đi bằng RRT
+# Gồm các param:
+    # start: tuple gồm tọa độ (x, y) của điểm bắt đầu
+    # goal: tuple gồm tọa độ (x, y) của điểm kết thúc
+    # map_size: tuple chứa thông tin kích cỡ của map (width, height)
+    # str_tree: STRtree, gồm tree chứa bounding của các obstacle
+    # step_size: bước nhảy tối đa khi tạo mới một điểm qua mỗi vòng lặp
+    # max_iter: số vòng lặp tối đa để tạo ra node mới
+    # goal_sample_rate: tỉ lệ lựa chọn hướng tới goal thay vì mở rộng ngẫu nhiên
+
+# Tìm đường bằng hàm find_path():
+    # Trả về đường nếu tìm thành không
+    # Trả về None nếu không tìm được đường
+
 class RRT:
     def __init__(self, start, goal, map_size, str_tree, step_size=50, max_iter=5000, goal_sample_rate=0.1):
         self.start = Node(*start)

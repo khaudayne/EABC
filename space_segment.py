@@ -1,6 +1,21 @@
 from shapely.geometry import LineString
 import math
 import random
+
+### Class tìm đường đi bằng space segmentation method
+# Gồm các param:
+    # start: tuple gồm tọa độ (x, y) của điểm bắt đầu
+    # goal: tuple gồm tọa độ (x, y) của điểm kết thúc
+    # num_segments: số lượng đoạn chia trong trục OX'
+    # map_size: tuple chứa thông tin kích cỡ của map (width, height)
+    # tree: STRtree, gồm tree chứa bounding của các obstacle
+    # number_try: số lần tạo ngẫu nhiên các điểm trên mỗi segment để tạo thành đường dẫn cho robot
+    # delta_y: dựa theo kích cỡ của map, để xác định tọa độ ngẫu nhiên của các điểm tạo mới nằm trong khoảng nào
+
+# Tìm đường bằng hàm find_path():
+    # Trả về đường nếu tìm thành không
+    # Trả về None nếu không tìm được đường
+
 class SegmentSpace:
     def __init__(self, start, goal, num_segments, map_size, tree, number_try = 100, delta_y = 100):
         self.start = start
@@ -80,13 +95,9 @@ class SegmentSpace:
 # # Thông số thuật toán
 # start = (50, 50)
 # goal = (450, 450)
-# num_segments = 20
+# num_segments = 30
 
 # # Khởi tạo quần thể đường đi
-# start_time = time.time()
-# path_init = SegmentSpace(start, goal, num_segments, map_size, obstacles, 20, 100)
+# path_init = SegmentSpace(start, goal, num_segments, map_size, STRtree([Polygon(obs) for obs in obstacles]), 20, 100)
 # population = path_init.find_path()
-# end_time = time.time()
-# print("TIME PROCESS RUN: {}".format(end_time - start_time))
 # print(population)
-# path_init.plot_paths(population)

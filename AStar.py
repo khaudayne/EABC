@@ -127,6 +127,16 @@ class BinaryHeap:
             else:
                 break
 
+### Class tìm đường đi bằng A-star
+# Gồm các param:
+    # start: tuple gồm tọa độ (x, y) của điểm bắt đầu
+    # goal: tuple gồm tọa độ (x, y) của điểm kết thúc
+    # map_size: tuple chứa thông tin kích cỡ của map (width, height)
+    # str_tree: STRtree, gồm tree chứa bounding của các obstacle
+
+# Tìm đường bằng hàm find_path():
+    # Trả về đường nếu tìm thành không
+    # Trả về None nếu không tìm được đường
 class AStar:
     def __init__(self, start, goal, map_size, str_tree):
         self.graph = [[GridNode(i, j) for j in range(map_size[1] + 1)] for i in range(map_size[0] + 1)]
