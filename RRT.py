@@ -31,6 +31,9 @@ class RRT:
         self.goal_sample_rate = goal_sample_rate
         self.tree = [self.start]
 
+    def reset(self):
+        self.tree = [self.start]
+
     def get_random_point(self):
         if random.random() < self.goal_sample_rate:
             return (self.goal.x, self.goal.y)

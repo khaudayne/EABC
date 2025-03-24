@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-from read_map import read_map_from_file
 import numpy as np
 
 def plot_map(route, obstacles, size_x = 500, size_y = 500):
@@ -26,11 +25,3 @@ def plot_map(route, obstacles, size_x = 500, size_y = 500):
         tmp_arr = np.array(route)
         ax.plot(tmp_arr[:,0], tmp_arr[:,1], 'r--', color="#011F82", markersize=2)
     plt.show()
-
-# Ví dụ sử dụng
-# file_path = "data/map.txt"  # Đường dẫn tới file chứa dữ liệu bản đồ
-# map_size, obstacles = read_map_from_file(file_path)
-# print("Kích thước bản đồ:", map_size)
-# print("Danh sách vật cản:", obstacles)
-
-# plot_map([[0, 0], [100, 100], [250, 500]], obstacles)

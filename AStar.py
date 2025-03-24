@@ -192,7 +192,7 @@ class AStar:
     
     def reconstruct_path(self, current):
         path = []
-        while current.parent != None:
+        while current != None:
             path.append((current.x, current.y))
             current = current.parent
         return path[::-1]

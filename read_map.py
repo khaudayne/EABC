@@ -1,4 +1,5 @@
 from shapely.geometry import Polygon
+from shapely.strtree import STRtree
 def read_map_from_file(file_path):
     with open(file_path, 'r') as file:
         lines = file.readlines()
@@ -23,4 +24,5 @@ def read_map_from_file(file_path):
     
     for i in range(len(obstacles)):
         obstacles[i] = Polygon(obstacles[i])
-    return (width, height), obstacles
+    tree = STRtree(obstacles)
+    return (width, height), obstacles, tree

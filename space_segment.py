@@ -73,7 +73,7 @@ class SegmentSpace:
                         break
                 
             if not check_try:
-                return self.generate_random_path(path)
+                return None
         path.append([self.goal])
         return self.generate_random_path(path)
 
