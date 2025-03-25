@@ -10,6 +10,7 @@ import random
 from geometry import path_crossover_operator, path_mutation_operator, path_safety_operator, path_shortening_operator, fast_non_dominated_sort
 import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
 
 ### Read info map
 path_data = "data/map.txt"
