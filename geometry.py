@@ -39,8 +39,8 @@ def path_crossover_operator(path1, path2, tree):
         new_path1 = path1[:idx1 + 1] + path2[idx2:]
         new_path2 = path2[:idx2 + 1] + path1[idx1:]
     
-    list_path = [path1, path2, new_path1, new_path2]
-    NDS_archive_idx, POP_ns_idx = fast_non_dominated_sort(list_path, tree)
+    list_path = [path1, new_path1, new_path2]
+    NDS_archive_idx, POP_ns_idx, _ = fast_non_dominated_sort(list_path, tree)
     sz = len(NDS_archive_idx)
     return list_path[NDS_archive_idx[random.randint(0, sz - 1)]]
     
@@ -107,7 +107,7 @@ def path_safety_operator(path, tree):
     if new_point[0] == path[idx_segment_min + 1][0] and new_point[1] == path[idx_segment_min + 1][1]:
         return path
     line = LineString([path[idx_segment_min], new_point, path[idx_segment_min + 1]])
-    if len(tree.query(line)) == 0 and idx_segment_min > 0:
+    if len(tree.query(line)) == 0 and idx_segment_min >= 0:
         new_path = path[:idx_segment_min + 1] + [new_point] + path[idx_segment_min + 1:]
         return new_path
     return path
@@ -117,8 +117,10 @@ def path_safety_operator(path, tree):
 def fast_non_dominated_sort(paths, tree):
     values1 = []
     values2 = []
+    list_obj = []
     for path in paths:
         obj_value = cal_objective(path, tree)
+        list_obj.append(obj_value)
         values1.append(obj_value[0])
         values2.append(obj_value[1])
 
@@ -165,4 +167,4 @@ def fast_non_dominated_sort(paths, tree):
         for j in range(len(front[i])):
             POP_ns_idx.append(front[i][j])
     
-    return NDS_archive_idx, POP_ns_idx
+    return NDS_archive_idx, POP_ns_idx, list_obj
