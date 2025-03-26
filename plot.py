@@ -17,11 +17,14 @@ def plot_map(route, obstacles, size_x = 500, size_y = 500):
         x, y = obstacle.exterior.xy
         ax.fill(x, y, edgecolor='black', color='black')
 
-    for i in range(len(route)):
+    for i in range(1, len(route) - 1):
         ax.scatter(route[i][0], route[i][1], color="#011F82", zorder=5, s=15)
 
     # Vẽ path của các con robot
     if len(route) > 1:
         tmp_arr = np.array(route)
         ax.plot(tmp_arr[:,0], tmp_arr[:,1], 'r--', color="#011F82", markersize=2)
+        ax.plot(route[0][0], route[0][1], 'bo', markersize=8, label="Start")
+        ax.plot(route[len(route) - 1][0], route[len(route) - 1][1], 'ro', markersize=8, label="Goal")
+        ax.legend()
     plt.show()

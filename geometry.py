@@ -71,13 +71,13 @@ def path_mutation_operator(path, tree, c_mf = 20):
     return path
 
 def path_shortening_operator(path, tree):
-    n = len(path) - 2
+    n = len(path)
     if n <= 2: 
         return path
     count = 0
     while count < n:
-        i = random.randint(1, n)
-        j = random.randint(1, n)
+        i = random.randint(0, n - 1)
+        j = random.randint(0, n - 1)
         if i > j:
             i, j = j, i
         if j - i > 1:
