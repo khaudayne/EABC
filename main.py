@@ -45,7 +45,7 @@ POP = []
 stagnation_count = []
 astar = AStar(start, goal, map_size, tree)
 rrt = RRT(start, goal, map_size, tree)
-space_segment = SegmentSpace(start, goal, 15, map_size, tree)
+space_segment = SegmentSpace(start, goal, 15, map_size, tree, number_try=25)
 POP.append(astar.find_path())
 stagnation_count.append(0)
 
@@ -154,6 +154,7 @@ while circle <= MAX_CIRCLE and end_time - start_time <= TIME_LIMIT:
     ### Scout bee phase
     for i in range(len(POP_ns_idx)):
         if stagnation_count[POP_ns_idx[i]] >= c_ef:
+            print("Nhay vao dayyyyyy")
             if random.random() > 0.5:
                 idx_nds_random = NDS_archive_idx[random.randint(0, len(NDS_archive_idx) - 1)]
                 idx_nds_boundary_random = NDS_archive_idx[random.randint(0, len(NDS_archive_idx) - 1)]
