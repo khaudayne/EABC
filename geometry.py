@@ -39,12 +39,10 @@ def path_crossover_operator(path1, path2, tree):
         new_path1 = path1[:idx1 + 1] + path2[idx2:]
         new_path2 = path2[:idx2 + 1] + path1[idx1:]
     
-    
-    
-
-    NDS_archive, POP_ns = fast_non_dominated_sort([path1, path2, new_path1, new_path2], tree)
-    sz = len(NDS_archive)
-    return NDS_archive[random.randint(0, sz - 1)]
+    list_path = [path1, path2, new_path1, new_path2]
+    NDS_archive_idx, POP_ns_idx = fast_non_dominated_sort(list_path, tree)
+    sz = len(NDS_archive_idx)
+    return list_path[NDS_archive_idx[random.randint(0, sz - 1)]]
     
 
 def path_mutation_operator(path, tree, c_mf = 20):
@@ -75,7 +73,7 @@ def path_shortening_operator(path, tree):
     if n <= 2: 
         return path
     count = 0
-    while count < n:
+    while count < n * 2:
         i = random.randint(0, n - 1)
         j = random.randint(0, n - 1)
         if i > j:
@@ -115,7 +113,7 @@ def path_safety_operator(path, tree):
     return path
 
 
-
+# todo: toi uu cai nay
 def fast_non_dominated_sort(paths, tree):
     values1 = []
     values2 = []
@@ -159,12 +157,12 @@ def fast_non_dominated_sort(paths, tree):
         i += 1
         front.append(Q)
     del front[-1]
-    NDS_archive = []
-    POP_ns = []
+    NDS_archive_idx = []
+    POP_ns_idx = []
     for i in range(len(front[0])):
-        NDS_archive.append(paths[front[0][i]])
+        NDS_archive_idx.append(front[0][i])
     for i in range(1, len(front)):
         for j in range(len(front[i])):
-            POP_ns.append(paths[front[i][j]])
+            POP_ns_idx.append(front[i][j])
     
-    return NDS_archive, POP_ns
+    return NDS_archive_idx, POP_ns_idx

@@ -1,2 +1,2 @@
-a = [False for i in range(3)]
-print(a)
+if not(True and True):
+    print(23412)
