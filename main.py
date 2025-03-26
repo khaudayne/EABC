@@ -3,7 +3,7 @@ from read_map import read_map_from_file
 from AStar import AStar
 from space_segment import SegmentSpace
 from RRT import RRT
-from objective_solver import cal_objective, check_dominate
+from objective_solver import cal_objective, check_dominate, normalization
 from plot import plot_map
 import time
 import random
@@ -67,11 +67,11 @@ while circle <= MAX_CIRCLE and end_time - start_time <= TIME_LIMIT:
         print("EABC iterator: {}".format(circle))
 
     ### Employed bee phase
-    for i in range(p_s):
+    for i in range(len(POP)):
         S_i = POP[i][:]
-        random_idx = random.randint(0, p_s - 1)
+        random_idx = random.randint(0, len(POP) - 1)
         while random_idx == i:
-            random_idx = random.randint(0, p_s - 1)
+            random_idx = random.randint(0, len(POP) - 1)
         S_random = POP[random_idx][:]
         S_new = path_crossover_operator(S_i, S_random, tree)
         S_new = path_mutation_operator(S_new, tree)
@@ -82,11 +82,45 @@ while circle <= MAX_CIRCLE and end_time - start_time <= TIME_LIMIT:
             POP[i] = path_safety_operator(S_new, tree)
 
 
-
+    NDS_archive, POP_ns = fast_non_dominated_sort(POP, tree)
     ### Onlooker bee phase
 
+    # Collaborative-based optimization mechanism
+    NDS_objective_value = [cal_objective(nds, tree) for nds in NDS_archive]
+    NDS_normalizee_value, is_boundary = normalization(NDS_objective_value)
+    for i in range(len(NDS_archive)):
+        path = NDS_archive[i][:]
+        if is_boundary[i]:
+            path = path_shortening_operator(path, tree)
+            path = path_safety_operator(path, tree)
+        else:
+            if NDS_normalizee_value[i][0] > NDS_normalizee_value[i][1]: # Compare normalize between length path and safety of path
+                path = path_shortening_operator(path, tree)
+            else:
+                path = path_safety_operator(path, tree)
+        
+        new_obj = cal_objective(path, tree)
+        if check_dominate(new_obj, NDS_objective_value[i]):
+            NDS_archive[i] = path
+
+    # Dominance-guided optimization mechanism
+    for i in range(len(POP_ns)):
+        old_obj = cal_objective(POP_ns[i], tree)
+        path = POP_ns[i][:]
+        path = path_shortening_operator(path, tree)
+        path = path_safety_operator(path, tree)
+        idx_random = random.randint(0, len(NDS_archive) - 1)
+        path_nds_random = NDS_archive[idx_random][:]
+        path = path_crossover_operator(path, path_nds_random, tree)
+
+        new_obj = cal_objective(path, tree)
+        if check_dominate(new_obj, old_obj):
+            POP_ns[i] = path
+
+    POP = NDS_archive + POP_ns
 
     ### Scout bee phase
+    
 
     circle = circle + 1
     end_time = time.time()
