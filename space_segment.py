@@ -46,14 +46,14 @@ class SegmentSpace:
         if not (0 <= x <= self.map_size[0] and 0 <= y <= self.map_size[1]):
             return False
         line = LineString([(old_point[0], old_point[1]), (new_point[0], new_point[1])])
-        is_collision = len(self.tree.query(line)) > 0
+        is_collision = len(self.tree.query(line, predicate='intersects')) > 0
         if is_collision:
             return False
         if not is_last_point:
             return True
         else:
             line = LineString([(new_point[0], new_point[1]), (self.goal[0], self.goal[1])])
-            return len(self.tree.query(line)) == 0
+            return len(self.tree.query(line, predicate='intersects')) == 0
     
     def convert_to_global_cord(self, x, y):
         global_x = round(self.start[0] + x * self.cos_phi - y * self.sin_phi)

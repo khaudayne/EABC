@@ -44,7 +44,7 @@ class RRT:
 
     def is_collision_free(self, node1, node2):
         line = LineString([(node1.x, node1.y), (node2.x, node2.y)])
-        candidates = self.str_tree.query(line)
+        candidates = self.str_tree.query(line, predicate='intersects')
         if len(candidates) > 0:
             return False
         return True
@@ -70,7 +70,7 @@ class RRT:
             if self.is_collision_free(nearest, new_node):
                 self.tree.append(new_node)
                 
-                if ((new_node.x - self.goal.x) ** 2 + (new_node.y - self.goal.y) ** 2) <= self.step_size ** 2 and self.is_collision_free(new_node, self.goal):
+                if self.is_collision_free(new_node, self.goal):
                     self.goal.parent = new_node
                     return self.get_path()
         return None

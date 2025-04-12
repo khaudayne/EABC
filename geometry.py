@@ -34,7 +34,7 @@ def path_crossover_operator(path1, path2, tree):
         new_path1 = path1[:idx1 + 1] + path2[idx2 + 1:]
         new_path2 = path2[:idx2 + 1] + path1[idx1 + 1:]
     else:
-        if len(tree.query(LineString([path1[idx1], path2[idx2]]))) > 0:
+        if len(tree.query(LineString([path1[idx1], path2[idx2]]), predicate='intersects')) > 0:
             return path1
         new_path1 = path1[:idx1 + 1] + path2[idx2:]
         new_path2 = path2[:idx2 + 1] + path1[idx1:]
@@ -59,7 +59,7 @@ def path_mutation_operator(path, tree, c_mf = 20):
         radian_random = random.uniform(0, 2 * math.pi)
         p_new = (round(p_rand[0] + 2 * dis * math.cos(radian_random)), round(p_rand[1] + 2 * dis * math.sin(radian_random)))
         line = LineString([path[idx_ran - 1], p_new, path[idx_ran + 1]])
-        if len(tree.query(line)) == 0:
+        if len(tree.query(line, predicate='intersects')) == 0:
             new_path = path[:idx_ran] + [p_new] + path[idx_ran + 1:]
             objective_new = cal_objective(new_path, tree)
             if check_dominate(objective_new, objective_old):
@@ -80,7 +80,7 @@ def path_shortening_operator(path, tree):
             i, j = j, i
         if j - i > 1:
             line = LineString([path[i], path[j]])
-            if len(tree.query(line)) == 0:
+            if len(tree.query(line, predicate='intersects')) == 0:
                 new_path = path[:i + 1] + path[j:]
                 return new_path
         count += 1
@@ -107,7 +107,7 @@ def path_safety_operator(path, tree):
     if new_point[0] == path[idx_segment_min + 1][0] and new_point[1] == path[idx_segment_min + 1][1]:
         return path
     line = LineString([path[idx_segment_min], new_point, path[idx_segment_min + 1]])
-    if len(tree.query(line)) == 0 and idx_segment_min >= 0:
+    if len(tree.query(line, predicate='intersects')) == 0 and idx_segment_min >= 0:
         new_path = path[:idx_segment_min + 1] + [new_point] + path[idx_segment_min + 1:]
         return new_path
     return path

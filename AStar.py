@@ -153,7 +153,7 @@ class AStar:
         if self.graph[x][y].closed:
             return False
         line = LineString([(currentNode.x, currentNode.y), (x, y)])
-        candidates = self.str_tree.query(line)
+        candidates = self.str_tree.query(line, predicate='intersects')
         if len(candidates) > 0:
             return False
         return True
