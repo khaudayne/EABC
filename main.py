@@ -14,7 +14,7 @@ warnings.filterwarnings("ignore", category=RuntimeWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 
 ### Read info map
-path_data = "data/map.txt"
+path_data = "data/map3.txt"
 map_size, obstacles, tree = read_map_from_file(path_data)
 ### END Read info map
 
@@ -23,8 +23,8 @@ p_s = 50 # Population size
 c_ef = 10 # Max count non-evolution individual to become scout bee
 c_mf = 20
 start = (50, 50)
-goal = (450, 450)
-MAX_CIRCLE = 100
+goal = (50, 350)
+MAX_CIRCLE = 1
 TIME_LIMIT = 50
 ### END Param
 
@@ -44,7 +44,7 @@ start_time = time.time()
 POP = []
 stagnation_count = []
 astar = AStar(start, goal, map_size, tree)
-rrt = RRT(start, goal, map_size, tree)
+rrt = RRT(start, goal, map_size, tree, step_size=5, max_iter=10000)
 space_segment = SegmentSpace(start, goal, 15, map_size, tree, number_try=25)
 POP.append(astar.find_path())
 stagnation_count.append(0)

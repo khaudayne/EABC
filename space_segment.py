@@ -23,8 +23,15 @@ class SegmentSpace:
         self.num_segments = num_segments
         self.map_size = map_size
         self.tree = tree
+        arc_tan = None
+        if goal[0] == start[0]:
+            if goal[1] - start[1] > 0:
+                arc_tan = math.pi / 2
+            else:
+                arc_tan = - math.pi / 2
+        else:
+            arc_tan = math.atan((goal[1] - start[1]) / (goal[0] - start[0]))
 
-        arc_tan = math.atan((goal[1] - start[1]) / (goal[0] - start[0]))
         self.sin_phi = math.sin(arc_tan)
         self.cos_phi = math.cos(arc_tan)
 
