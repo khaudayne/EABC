@@ -24,7 +24,7 @@ c_ef = 10 # Max count non-evolution individual to become scout bee
 c_mf = 20
 start = (50, 50)
 goal = (378, 456)
-MAX_CIRCLE = 1
+MAX_CIRCLE = 100
 TIME_LIMIT = 50
 ### END Param
 
@@ -47,8 +47,6 @@ astar = AStar(start, goal, map_size, tree)
 rrt = RRT(start, goal, map_size, tree, step_size=15, max_iter=10000)
 space_segment = SegmentSpace(start, goal, 15, map_size, tree, number_try=25)
 POP.append(astar.find_path())
-if(POP[0] == None):
-    print("Can't find Astar path!!!")
 stagnation_count.append(0)
 
 for i in range(1, p_s):
