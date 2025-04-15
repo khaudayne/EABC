@@ -5,7 +5,7 @@ from shapely.ops import nearest_points
 import math
 import random
 
-def path_crossover_operator(path1, path2, tree):
+def path_crossover_operator(path1, path2, tree, is_choose_child = False):
     if len(path1) <= 2 or len(path2) <= 2: # Không có intermediate point
         return path1
     
@@ -35,10 +35,15 @@ def path_crossover_operator(path1, path2, tree):
         new_path2 = path2[:idx2 + 1] + path1[idx1 + 1:]
     else:
         if len(tree.query(LineString([path1[idx1], path2[idx2]]), predicate='intersects')) > 0:
+            if is_choose_child:
+                new_path1 = path1[:]
+                new_path2 = path2[:]
+                return new_path1, new_path2
             return path1
         new_path1 = path1[:idx1 + 1] + path2[idx2:]
         new_path2 = path2[:idx2 + 1] + path1[idx1:]
-    
+    if is_choose_child:
+        return new_path1, new_path2
     list_path = [path1, new_path1, new_path2]
     NDS_archive_idx, POP_ns_idx, _ = fast_non_dominated_sort(list_path, tree)
     sz = len(NDS_archive_idx)

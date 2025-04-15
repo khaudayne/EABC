@@ -43,17 +43,21 @@ class Population:
             raise ValueError("The length of the list must be equal to the population size")
         self.indivs = deepcopy(indi_list)
 
-    def gen_offspring(self, problem, crossover_operator, mutation_operator, crossover_rate, mutation_rate):
+    def gen_offspring(self, tree, crossover_operator, mutation_operator, crossover_rate, mutation_rate, cal_fitness):
         offspring = []
         for i in range(self.pop_size):
             parent1, parent2 = np.random.choice(self.indivs, 2, replace = False)
             if np.random.rand() < crossover_rate:
-                off1, off2 = crossover_operator(problem, parent1, parent2)
+                c1, c2 = crossover_operator(parent1.chromosome, parent2.chromosome, tree, True)
+                off1 = Individual(c1)
+                off2 = Individual(c2)
             else:
                 off1, off2 = deepcopy(parent1), deepcopy(parent2)
             if np.random.rand() < mutation_rate:
-                off1 = mutation_operator(problem, off1)
-                off2 = mutation_operator(problem, off2)
+                off1.chromosome = mutation_operator(off1.chromosome, tree)
+                off2.chromosome = mutation_operator(off2.chromosome, tree)
+            off1.objectives = cal_fitness(off1.chromosome, tree)
+            off2.objectives = cal_fitness(off2.chromosome, tree)
             offspring.append(off1)
             offspring.append(off2)
         return offspring
