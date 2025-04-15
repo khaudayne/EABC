@@ -1,0 +1,2 @@
+def teta():
+    print("TETASD )(*@!)")

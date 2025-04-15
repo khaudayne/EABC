@@ -127,4 +127,3 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
     print("NSGA-II Done: ", cal_hv_front(nsga_ii_pop.ParetoFront[0], np.array([1, 1, 10, 10])))
     return history
     
-

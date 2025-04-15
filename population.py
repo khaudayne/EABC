@@ -58,4 +58,3 @@ class Population:
             offspring.append(off2)
         return offspring
     
-        
