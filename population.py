@@ -52,7 +52,8 @@ class Population:
                 off1 = Individual(c1)
                 off2 = Individual(c2)
             else:
-                off1, off2 = deepcopy(parent1), deepcopy(parent2)
+                off1 = Individual(parent1.chromosome[:])
+                off2 = Individual(parent2.chromosome[:])
             if np.random.rand() < mutation_rate:
                 off1.chromosome = mutation_operator(off1.chromosome, tree)
                 off2.chromosome = mutation_operator(off2.chromosome, tree)

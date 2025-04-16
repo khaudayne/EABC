@@ -7,6 +7,10 @@ import random
 
 def path_crossover_operator(path1, path2, tree, is_choose_child = False):
     if len(path1) <= 2 or len(path2) <= 2: # Không có intermediate point
+        if is_choose_child:
+            new_path1 = path1[:]
+            new_path2 = path2[:]
+            return new_path1, new_path2
         return path1
     
     len1 = len(path1)

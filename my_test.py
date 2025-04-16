@@ -1,5 +1,5 @@
-a = [12, 312, 312,543]
-b = a[:]
-b[1] = 233124
+import numpy as np
+a = np.arange(1, 5)
 print(a)
-print(b)
+a = 1 / a
+print(a)
