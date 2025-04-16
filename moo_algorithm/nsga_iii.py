@@ -50,7 +50,7 @@ def generate_reference_points(num_objs, num_divisions_per_obj=4):
 
 def find_ideal_point(indivs):
     m = len(indivs[0].objectives)
-    ideal_point = [np.infty]*m
+    ideal_point = [np.inf]*m
     for indi in indivs:
         for i in range(m):
             ideal_point[i] = min(ideal_point[i], indi.objectives[i])
