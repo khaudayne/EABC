@@ -82,10 +82,8 @@ class MOEADPopulation(Population):
         self.indivs, O = self.indivs[:self.pop_size], self.indivs[self.pop_size:]
         for i in range(self.pop_size):
             indi = O[i]
-            wv = self.weights[i]
-            value_indi = self.cal_value_ind(indi.objectives, wv)
             for j in self.neighborhoods[i]:
-                if value_indi < self.cal_value_ind(self.indivs[j].objectives, wv):
+                if self.cal_value_ind(indi.objectives, self.weights[j]) < self.cal_value_ind(self.indivs[j].objectives, self.weights[j]):
                     self.indivs[j] = indi
 
     def update_external(self, indivs: list):
