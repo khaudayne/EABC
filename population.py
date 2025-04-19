@@ -10,6 +10,9 @@ class Individual:
         self.dominated_solutions = None # dominate
         self.crowding_distance = None
         self.rank = None
+        self.velocity = None
+        self.personal_best = None
+        self.personal_best_objectives = None
     
     def gen_random(self, problem, create_solution):
         self.chromosome = create_solution(problem)

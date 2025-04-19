@@ -1,32 +1,39 @@
-import multiprocessing
 import sys
 import os
 import numpy as np
-from copy import deepcopy
 # Add the parent directory to the module search path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 from moo_algorithm.metric import cal_hv_front
 from population import Population, Individual
+from read_map import read_map_from_file
+from space_segment import SegmentSpace
+from RRT import RRT
+from objective_solver import cal_objective, check_dominate
+from geometry import fast_non_dominated_sort
+from plot import plot_map
+import random
+import warnings
+from shapely.geometry import LineString
+warnings.filterwarnings("ignore", category=RuntimeWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
 
 class MOPSOPopulation(Population):
     def __init__(self, pop_size):
         super().__init__(pop_size)
         self.ParetoFront = []
-        self.velocity = []
-        self.personal_best = []
-        self.personal_best_objectives = []
         self.global_best = None
 
     def initialize(self):
-        self.velocity = [np.zeros_like(ind.chromosome) for ind in self.indivs]
-        self.personal_best = [deepcopy(ind) for ind in self.indivs]
-        self.personal_best_objectives = [ind.objectives for ind in self.indivs]
+        for ind in self.indivs:
+            ind.velocity = [[0, 0] for _ in range(len(ind.chromosome))]
+            ind.personal_best = ind.chromosome[:]
+            ind.personal_best_objectives = ind.objectives
         self.update_global_best()
 
     def update_global_best(self):
         self.ParetoFront = self.fast_nondominated_sort(self.indivs)
         if len(self.ParetoFront) > 0:
-            self.global_best = np.random.choice(self.ParetoFront[0])
+            self.global_best = np.random.choice(self.ParetoFront[0]).chromosome[:]
 
     def fast_nondominated_sort(self, indi_list):
         ParetoFront = [[]]
@@ -55,20 +62,37 @@ class MOPSOPopulation(Population):
         return ParetoFront
 
     def update_personal_best(self):
-        for i, individual in enumerate(self.indivs):
-            if individual.dominates(self.personal_best[i]):
-                self.personal_best[i] = deepcopy(individual)
-                self.personal_best_objectives[i] = individual.objectives
+        for individual in self.indivs:
+            if check_dominate(individual.objectives, individual.personal_best_objectives):
+                individual.personal_best = individual.chromosome[:]
+                individual.personal_best_objectives = individual.objectives
 
     def update_velocity_and_position(self, w, c1, c2):
-        for i, individual in enumerate(self.indivs):
+        for individual in self.indivs:
             r1 = np.random.rand(len(individual.chromosome))
             r2 = np.random.rand(len(individual.chromosome))
-            cognitive = c1 * r1 * (self.personal_best[i].chromosome - individual.chromosome)
-            social = c2 * r2 * (self.global_best.chromosome - individual.chromosome)
-            self.velocity[i] = w * self.velocity[i] + cognitive + social
-            individual.chromosome += self.velocity[i]
-            individual.repair()
+
+            list_nearest_global_best = []
+            for p in individual.chromosome:
+                min_dis = -1
+                idx = -1
+                for j, p1 in enumerate(self.global_best):
+                    if min_dis == -1 or min_dis > (p1[0] - p[0]) ** 2 + (p1[1] - p[1]) ** 2:
+                        min_dis = (p1[0] - p[0]) ** 2 + (p1[1] - p[1]) ** 2
+                        idx = j
+                list_nearest_global_best.append(self.global_best[idx])
+    
+            for j in range(len(individual.chromosome)):
+                individual.velocity[j][0] = w * individual.velocity[j][0] + c1 * r1[j] * (individual.personal_best[j][0] - individual.chromosome[j][0]) + c2 * r2[j] * (list_nearest_global_best[j][0] - individual.chromosome[j][0])
+                individual.velocity[j][1] = w * individual.velocity[j][1] + c1 * r1[j] * (individual.personal_best[j][1] - individual.chromosome[j][1]) + c2 * r2[j] * (list_nearest_global_best[j][1] - individual.chromosome[j][1])
+            new_path = []
+            for j in range(len(individual.chromosome)):
+                new_path.append((int(individual.chromosome[j][0] + individual.velocity[j][0]), int(individual.chromosome[j][1] + individual.velocity[j][1])))
+            line = LineString(new_path)
+            candidates = tree.query(line, predicate='intersects')
+            if len(candidates) == 0:
+                for j in range(len(individual.chromosome)):
+                    individual.chromosome[j] = new_path[j]
 
     def fast_nondominated_sort_crowding_distance(self, indi_list):
         ParetoFront = [[]]
@@ -142,16 +166,14 @@ class MOPSOPopulation(Population):
         self.ParetoFront = new_fronts
         self.indivs = new_indivs
 
-def run_mopso(processing_number, problem, indi_list, pop_size, max_gen, w, c1, c2, cal_fitness):
+def run_mopso(tree, obstacles, indi_list, pop_size, max_gen, w, min_w, c1, c2, cal_fitness):
     print("MOPSO")
     history = {}
     mopso_pop = MOPSOPopulation(pop_size)
     mopso_pop.pre_indi_gen(indi_list)
-    pool = multiprocessing.Pool(processing_number)
-    arg = [(problem, individual) for individual in mopso_pop.indivs]
-    result = pool.starmap(cal_fitness, arg)
-    for individual, fitness in zip(mopso_pop.indivs, result):
-        individual.objectives = fitness
+    for i in range(len(mopso_pop.indivs)):
+        mopso_pop.indivs[i].objectives = cal_fitness(mopso_pop.indivs[i].chromosome, tree)
+
     mopso_pop.initialize()
     mopso_pop.update_personal_best()
     mopso_pop.update_global_best()
@@ -163,20 +185,65 @@ def run_mopso(processing_number, problem, indi_list, pop_size, max_gen, w, c1, c
     for gen in range(max_gen):
         Pareto_store = []
         mopso_pop.update_velocity_and_position(w, c1, c2)
+        w = max(w * 0.95, min_w)
 
-        arg = [(problem, individual) for individual in mopso_pop.indivs]
-        result = pool.starmap(cal_fitness, arg)
-        for individual, fitness in zip(mopso_pop.indivs, result):
-            individual.objectives = fitness
+        for i in range(len(mopso_pop.indivs)):
+            mopso_pop.indivs[i].objectives = cal_fitness(mopso_pop.indivs[i].chromosome, tree)
+
 
         mopso_pop.update_personal_best()
         mopso_pop.update_global_best()
         mopso_pop.natural_selection()
 
-        print(f"Generation {gen + 1}: Done")
+        if (gen + 1) % 50 == 0:
+            print(f"Generation {gen + 1}: Done")
+
         Pareto_store = [list(indi.objectives) for indi in mopso_pop.ParetoFront[0]]
         history[gen + 1] = Pareto_store
 
-    pool.close()
-    print("MOPSO Done: ", cal_hv_front(mopso_pop.ParetoFront[0], np.array([1, 1, 10, 10])))
+    print("MOPSO Done!")
+    POP = []
+    for ind in mopso_pop.indivs:
+        POP.append(ind.chromosome)
+    NDS_archive_idx, POP_ns_idx, list_obj = fast_non_dominated_sort(POP, tree)
+    print("\nEND algorithm, show result below:\n")
+    for i in range(len(NDS_archive_idx)):
+        path = POP[NDS_archive_idx[i]]
+        print("\nRount {}: {}".format(i + 1, path))
+        obj = list_obj[NDS_archive_idx[i]]
+        print("Have objective value is: {}".format(obj))
+    plot_map(POP[NDS_archive_idx[random.randint(0, len(NDS_archive_idx) - 1)]], obstacles)
+    
     return history
+
+start = (50, 50)
+goal = (378, 456)
+pop_size = 50
+max_gen = 2000
+path_data = "data/map3.txt"
+indi_list = []
+map_size, obstacles, tree = read_map_from_file(path_data)
+rrt = RRT(start, goal, map_size, tree, step_size=15, max_iter=10000)
+space_segment = SegmentSpace(start, goal, 15, map_size, tree, number_try=25)
+for i in range(pop_size):
+    rrt.reset()
+    S_n = rrt.find_path()
+    S_m = space_segment.find_path()
+    if S_n == None and S_m == None:
+        print("Can't find any path at iterator: {}".format(i))
+        continue
+    obj_n = cal_objective(S_n, tree)
+    obj_m = cal_objective(S_m, tree)
+    
+    # Check which solution dominate other one
+    if check_dominate(obj_n, obj_m):
+        indi_list.append(Individual(S_n))
+    elif check_dominate(obj_m, obj_n):
+        indi_list.append(Individual(S_m))
+    else:
+        if S_n[0] < S_m[0]:
+            indi_list.append(Individual(S_n))
+        else:
+            indi_list.append(Individual(S_m))
+
+run_mopso(tree, obstacles, indi_list, pop_size, max_gen, 0.9, 0.4, 1.5, 1.5, cal_objective)
