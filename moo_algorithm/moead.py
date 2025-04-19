@@ -6,6 +6,18 @@ import numpy as np
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 from moo_algorithm.metric import cal_hv_front
 from population import Population, Individual
+from population import Population, Individual
+from read_map import read_map_from_file
+from space_segment import SegmentSpace
+from RRT import RRT
+from objective_solver import cal_objective, check_dominate
+from geometry import fast_non_dominated_sort, path_crossover_operator, path_mutation_operator
+from plot import plot_map
+import random
+import warnings
+from shapely.geometry import LineString
+warnings.filterwarnings("ignore", category=RuntimeWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
 
 def init_weight_vectors_2d(pop_size):
     wvs = []
@@ -49,69 +61,55 @@ class MOEADPopulation(Population):
             B[i] = np.argsort(euclidean_distances)[:self.neighborhood_size]
         return B
 
-    def reproduction(self, problem, crossover_operator, mutation_operator, mutation_rate):
+    def reproduction(self, tree, crossover_operator, mutation_operator, mutation_rate):
         offspring = []
         for i in range(self.pop_size):
             parent1, parent2 = np.random.choice(self.neighborhoods[i].tolist(), 2, replace=False)
-            off1, off2 = crossover_operator(problem, self.indivs[parent1], self.indivs[parent2])
+            c1, c2 = crossover_operator(self.indivs[parent1].chromosome, self.indivs[parent2].chromosome, tree, True)
+            off1 = Individual(c1)
             if np.random.rand() < mutation_rate:
-                off1 = mutation_operator(problem, off1)
+                off1.chromosome = mutation_operator(off1.chromosome, tree)
             offspring.append(off1)
         return offspring
     
-    # def mutation(self, problem, mutation_operator):
-    #     for i in range(self.pop_size):
-    #         if np.random.rand() < 0.1:
-    #             self.indivs[i] = mutation_operator(problem, self.indivs[i])
-    
+    def cal_value_ind(self, obj, w):
+        value_indi = 0
+        for i in range(len(w)):
+            value_indi += w[i] * obj[i]
+        return value_indi
 
     def natural_selection(self):
         self.indivs, O = self.indivs[:self.pop_size], self.indivs[self.pop_size:]
         for i in range(self.pop_size):
             indi = O[i]
             wv = self.weights[i]
-            value_indi = np.sum(wv * indi.objectives)
+            value_indi = self.cal_value_ind(indi.objectives, wv)
             for j in self.neighborhoods[i]:
-                if value_indi < np.sum(wv * self.indivs[j].objectives):
+                if value_indi < self.cal_value_ind(self.indivs[j].objectives, wv):
                     self.indivs[j] = indi
 
     def update_external(self, indivs: list):
         for indi in indivs:
             old_size = len(self.external_pop)
             self.external_pop = [other for other in self.external_pop
-                                 if not indi.dominates(other)]
+                                 if not check_dominate(indi.objectives, other.objectives)]
             if old_size > len(self.external_pop):
                 self.external_pop.append(indi)
                 continue
             for other in self.external_pop:
-                if other.dominates(indi):
+                if check_dominate(other.objectives, indi.objectives):
                     break
             else:
                 self.external_pop.append(indi)
-    
-    # def update_weights(self, problem, indivs: list):
-    #     for i in range(self.pop_size):
-    #         wv = self.weights[i]
-    #         self.indivs[i].objectives = problem.evaluate(indivs[i].chromosome)
-    #         value_indi = np.sum(wv * self.indivs[i].objectives)
-    #         for j in self.neighborhoods[i]:
-    #             if value_indi < np.sum(wv * self.indivs[j].objectives):
-    #                 self.indivs[j] = self.indivs[i]
 
-
-def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighborhood_size, 
+def run_moead(tree, obstacles, indi_list, pop_size, max_gen, neighborhood_size, 
               init_weight_vectors, crossover_operator,mutation_operator, cal_fitness):
     print("MOEA/D")
     moead_pop = MOEADPopulation(pop_size, neighborhood_size, init_weight_vectors)
     moead_pop.pre_indi_gen(indi_list)
     history = {}
-    pool = multiprocessing.Pool(processing_number)
-    arg = []
-    for individual in moead_pop.indivs:
-        arg.append((problem, individual))
-    result = pool.starmap(cal_fitness, arg)
-    for individual, fitness in zip(moead_pop.indivs, result):
-        individual.objectives = fitness
+    for i in range(len(moead_pop.indivs)):
+        moead_pop.indivs[i].objectives = cal_fitness(moead_pop.indivs[i].chromosome, tree)
     
     moead_pop.update_external(moead_pop.indivs)
     # moead_pop.update_weights(problem, moead_pop.indivs)
@@ -122,23 +120,62 @@ def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighbor
     history[0] = Pareto_store
 
     for gen in range(max_gen):
-        offspring = moead_pop.reproduction(problem, crossover_operator, mutation_operator, 0.1)
-        arg = []
-        for individual in offspring:
-            arg.append((problem, individual))
-        result = pool.starmap(cal_fitness, arg)
-        for individual, fitness in zip(offspring, result):
-            individual.objectives = fitness
+        offspring = moead_pop.reproduction(tree, crossover_operator, mutation_operator, 0.1)
+        for i in range(len(offspring)):
+            offspring[i].objectives = cal_fitness(offspring[i].chromosome, tree)
+
         moead_pop.update_external(offspring)
         moead_pop.indivs.extend(offspring)
-        # moead_pop.update_weights(problem, offspring)
         moead_pop.natural_selection()
         print("Generation {}: Done".format(gen + 1))
         Pareto_store = []
         for indi in moead_pop.external_pop:
             Pareto_store.append(list(indi.objectives))
         history[gen + 1] = Pareto_store
-    pool.close()
 
-    print("MOEA/D Done: ", cal_hv_front(moead_pop.external_pop, np.array([1, 1, 10, 10])))
+    print("MOEA/D Done!")
+    POP = []
+    for ind in moead_pop.indivs:
+        POP.append(ind.chromosome)
+    NDS_archive_idx, POP_ns_idx, list_obj = fast_non_dominated_sort(POP, tree)
+    print("\nEND algorithm, show result below:\n")
+    for i in range(len(NDS_archive_idx)):
+        path = POP[NDS_archive_idx[i]]
+        print("\nRount {}: {}".format(i + 1, path))
+        obj = list_obj[NDS_archive_idx[i]]
+        print("Have objective value is: {}".format(obj))
+    plot_map(POP[NDS_archive_idx[random.randint(0, len(NDS_archive_idx) - 1)]], obstacles)
+    
     return history
+
+start = (50, 50)
+goal = (378, 456)
+pop_size = 50
+max_gen = 100
+path_data = "data/map3.txt"
+indi_list = []
+map_size, obstacles, tree = read_map_from_file(path_data)
+rrt = RRT(start, goal, map_size, tree, step_size=15, max_iter=10000)
+space_segment = SegmentSpace(start, goal, 15, map_size, tree, number_try=25)
+for i in range(pop_size):
+    rrt.reset()
+    S_n = rrt.find_path()
+    S_m = space_segment.find_path()
+    if S_n == None and S_m == None:
+        print("Can't find any path at iterator: {}".format(i))
+        continue
+    obj_n = cal_objective(S_n, tree)
+    obj_m = cal_objective(S_m, tree)
+    
+    # Check which solution dominate other one
+    if check_dominate(obj_n, obj_m):
+        indi_list.append(Individual(S_n))
+    elif check_dominate(obj_m, obj_n):
+        indi_list.append(Individual(S_m))
+    else:
+        if S_n[0] < S_m[0]:
+            indi_list.append(Individual(S_n))
+        else:
+            indi_list.append(Individual(S_m))
+
+run_moead(tree, obstacles, indi_list, pop_size, max_gen, 5, init_weight_vectors_2d, path_crossover_operator, path_mutation_operator, cal_objective)
