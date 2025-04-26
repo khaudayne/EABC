@@ -111,7 +111,7 @@ def run_moead(tree, obstacles, indi_list, pop_size, max_gen, neighborhood_size,
     
     moead_pop.update_external(moead_pop.indivs)
     # moead_pop.update_weights(problem, moead_pop.indivs)
-    print("Generation 0: Done")
+    # print("Generation 0: Done")
     Pareto_store = []
     for indi in moead_pop.external_pop:
         Pareto_store.append(list(indi.objectives))
@@ -125,7 +125,7 @@ def run_moead(tree, obstacles, indi_list, pop_size, max_gen, neighborhood_size,
         moead_pop.update_external(offspring)
         moead_pop.indivs.extend(offspring)
         moead_pop.natural_selection()
-        print("Generation {}: Done".format(gen + 1))
+        # print("Generation {}: Done".format(gen + 1))
         Pareto_store = []
         for indi in moead_pop.external_pop:
             Pareto_store.append(list(indi.objectives))
@@ -136,44 +136,45 @@ def run_moead(tree, obstacles, indi_list, pop_size, max_gen, neighborhood_size,
     for ind in moead_pop.indivs:
         POP.append(ind.chromosome)
     NDS_archive_idx, POP_ns_idx, list_obj = fast_non_dominated_sort(POP, tree)
-    print("\nEND algorithm, show result below:\n")
-    for i in range(len(NDS_archive_idx)):
-        path = POP[NDS_archive_idx[i]]
-        print("\nRount {}: {}".format(i + 1, path))
-        obj = list_obj[NDS_archive_idx[i]]
-        print("Have objective value is: {}".format(obj))
-    plot_map(POP[NDS_archive_idx[random.randint(0, len(NDS_archive_idx) - 1)]], obstacles)
+    # print("\nEND algorithm, show result below:\n")
+    # for i in range(len(NDS_archive_idx)):
+    #     path = POP[NDS_archive_idx[i]]
+    #     print("\nRount {}: {}".format(i + 1, path))
+    #     obj = list_obj[NDS_archive_idx[i]]
+    #     print("Have objective value is: {}".format(obj))
+    # plot_map(POP[NDS_archive_idx[random.randint(0, len(NDS_archive_idx) - 1)]], obstacles)
     
-    return history
+    # return history
+    return [list_obj[i] for i in NDS_archive_idx]
 
-start = (50, 50)
-goal = (378, 456)
-pop_size = 50
-max_gen = 100
-path_data = "data/map3.txt"
-indi_list = []
-map_size, obstacles, tree = read_map_from_file(path_data)
-rrt = RRT(start, goal, map_size, tree, step_size=15, max_iter=10000)
-space_segment = SegmentSpace(start, goal, 15, map_size, tree, number_try=25)
-for i in range(pop_size):
-    rrt.reset()
-    S_n = rrt.find_path()
-    S_m = space_segment.find_path()
-    if S_n == None and S_m == None:
-        print("Can't find any path at iterator: {}".format(i))
-        continue
-    obj_n = cal_objective(S_n, tree)
-    obj_m = cal_objective(S_m, tree)
+# start = (50, 50)
+# goal = (378, 456)
+# pop_size = 50
+# max_gen = 100
+# path_data = "data/map3.txt"
+# indi_list = []
+# map_size, obstacles, tree = read_map_from_file(path_data)
+# rrt = RRT(start, goal, map_size, tree, step_size=15, max_iter=10000)
+# space_segment = SegmentSpace(start, goal, 15, map_size, tree, number_try=25)
+# for i in range(pop_size):
+#     rrt.reset()
+#     S_n = rrt.find_path()
+#     S_m = space_segment.find_path()
+#     if S_n == None and S_m == None:
+#         print("Can't find any path at iterator: {}".format(i))
+#         continue
+#     obj_n = cal_objective(S_n, tree)
+#     obj_m = cal_objective(S_m, tree)
     
-    # Check which solution dominate other one
-    if check_dominate(obj_n, obj_m):
-        indi_list.append(Individual(S_n))
-    elif check_dominate(obj_m, obj_n):
-        indi_list.append(Individual(S_m))
-    else:
-        if S_n[0] < S_m[0]:
-            indi_list.append(Individual(S_n))
-        else:
-            indi_list.append(Individual(S_m))
+#     # Check which solution dominate other one
+#     if check_dominate(obj_n, obj_m):
+#         indi_list.append(Individual(S_n))
+#     elif check_dominate(obj_m, obj_n):
+#         indi_list.append(Individual(S_m))
+#     else:
+#         if S_n[0] < S_m[0]:
+#             indi_list.append(Individual(S_n))
+#         else:
+#             indi_list.append(Individual(S_m))
 
-run_moead(tree, obstacles, indi_list, pop_size, max_gen, 5, init_weight_vectors_2d, path_crossover_operator, path_mutation_operator, cal_objective)
+# run_moead(tree, obstacles, indi_list, pop_size, max_gen, 5, init_weight_vectors_2d, path_crossover_operator, path_mutation_operator, cal_objective)

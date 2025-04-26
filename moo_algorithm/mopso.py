@@ -67,7 +67,7 @@ class MOPSOPopulation(Population):
                 individual.personal_best = individual.chromosome[:]
                 individual.personal_best_objectives = individual.objectives
 
-    def update_velocity_and_position(self, w, c1, c2):
+    def update_velocity_and_position(self, w, c1, c2, tree):
         for individual in self.indivs:
             r1 = np.random.rand(len(individual.chromosome))
             r2 = np.random.rand(len(individual.chromosome))
@@ -178,13 +178,13 @@ def run_mopso(tree, obstacles, indi_list, pop_size, max_gen, w, min_w, c1, c2, c
     mopso_pop.update_personal_best()
     mopso_pop.update_global_best()
 
-    print("Generation 0: Done")
+    # print("Generation 0: Done")
     Pareto_store = [list(indi.objectives) for indi in mopso_pop.ParetoFront[0]]
     history[0] = Pareto_store
 
     for gen in range(max_gen):
         Pareto_store = []
-        mopso_pop.update_velocity_and_position(w, c1, c2)
+        mopso_pop.update_velocity_and_position(w, c1, c2, tree)
         w = max(w * 0.95, min_w)
 
         for i in range(len(mopso_pop.indivs)):
@@ -195,8 +195,8 @@ def run_mopso(tree, obstacles, indi_list, pop_size, max_gen, w, min_w, c1, c2, c
         mopso_pop.update_global_best()
         mopso_pop.natural_selection()
 
-        if (gen + 1) % 50 == 0:
-            print(f"Generation {gen + 1}: Done")
+        # if (gen + 1) % 50 == 0:
+            # print(f"Generation {gen + 1}: Done")
 
         Pareto_store = [list(indi.objectives) for indi in mopso_pop.ParetoFront[0]]
         history[gen + 1] = Pareto_store
@@ -206,44 +206,46 @@ def run_mopso(tree, obstacles, indi_list, pop_size, max_gen, w, min_w, c1, c2, c
     for ind in mopso_pop.indivs:
         POP.append(ind.chromosome)
     NDS_archive_idx, POP_ns_idx, list_obj = fast_non_dominated_sort(POP, tree)
-    print("\nEND algorithm, show result below:\n")
-    for i in range(len(NDS_archive_idx)):
-        path = POP[NDS_archive_idx[i]]
-        print("\nRount {}: {}".format(i + 1, path))
-        obj = list_obj[NDS_archive_idx[i]]
-        print("Have objective value is: {}".format(obj))
-    plot_map(POP[NDS_archive_idx[random.randint(0, len(NDS_archive_idx) - 1)]], obstacles)
+    # print("\nEND algorithm, show result below:\n")
+    # for i in range(len(NDS_archive_idx)):
+    #     path = POP[NDS_archive_idx[i]]
+    #     print("\nRount {}: {}".format(i + 1, path))
+    #     obj = list_obj[NDS_archive_idx[i]]
+    #     print("Have objective value is: {}".format(obj))
+    # plot_map(POP[NDS_archive_idx[random.randint(0, len(NDS_archive_idx) - 1)]], obstacles)
     
-    return history
+    # return history
+    return [list_obj[i] for i in NDS_archive_idx]
 
-start = (50, 50)
-goal = (378, 456)
-pop_size = 50
-max_gen = 2000
-path_data = "data/map3.txt"
-indi_list = []
-map_size, obstacles, tree = read_map_from_file(path_data)
-rrt = RRT(start, goal, map_size, tree, step_size=15, max_iter=10000)
-space_segment = SegmentSpace(start, goal, 15, map_size, tree, number_try=25)
-for i in range(pop_size):
-    rrt.reset()
-    S_n = rrt.find_path()
-    S_m = space_segment.find_path()
-    if S_n == None and S_m == None:
-        print("Can't find any path at iterator: {}".format(i))
-        continue
-    obj_n = cal_objective(S_n, tree)
-    obj_m = cal_objective(S_m, tree)
+
+# start = (50, 50)
+# goal = (378, 456)
+# pop_size = 50
+# max_gen = 2000
+# path_data = "data/map3.txt"
+# indi_list = []
+# map_size, obstacles, tree = read_map_from_file(path_data)
+# rrt = RRT(start, goal, map_size, tree, step_size=15, max_iter=10000)
+# space_segment = SegmentSpace(start, goal, 15, map_size, tree, number_try=25)
+# for i in range(pop_size):
+#     rrt.reset()
+#     S_n = rrt.find_path()
+#     S_m = space_segment.find_path()
+#     if S_n == None and S_m == None:
+#         print("Can't find any path at iterator: {}".format(i))
+#         continue
+#     obj_n = cal_objective(S_n, tree)
+#     obj_m = cal_objective(S_m, tree)
     
-    # Check which solution dominate other one
-    if check_dominate(obj_n, obj_m):
-        indi_list.append(Individual(S_n))
-    elif check_dominate(obj_m, obj_n):
-        indi_list.append(Individual(S_m))
-    else:
-        if S_n[0] < S_m[0]:
-            indi_list.append(Individual(S_n))
-        else:
-            indi_list.append(Individual(S_m))
+#     # Check which solution dominate other one
+#     if check_dominate(obj_n, obj_m):
+#         indi_list.append(Individual(S_n))
+#     elif check_dominate(obj_m, obj_n):
+#         indi_list.append(Individual(S_m))
+#     else:
+#         if S_n[0] < S_m[0]:
+#             indi_list.append(Individual(S_n))
+#         else:
+#             indi_list.append(Individual(S_m))
 
-run_mopso(tree, obstacles, indi_list, pop_size, max_gen, 0.9, 0.4, 1.5, 1.5, cal_objective)
+# run_mopso(tree, obstacles, indi_list, pop_size, max_gen, 0.9, 0.4, 1.5, 1.5, cal_objective)

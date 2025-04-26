@@ -108,7 +108,7 @@ def run_nsga_ii(tree, obstacles, indi_list, pop_size, max_gen, crossover_operato
         nsga_ii_pop.indivs[i].objectives = cal_fitness(nsga_ii_pop.indivs[i].chromosome, tree)
 
     nsga_ii_pop.natural_selection()
-    print("Generation 0: Done")
+    # print("Generation 0: Done")
     Pareto_store = []
     for indi in nsga_ii_pop.ParetoFront[0]:
         Pareto_store.append(list(indi.objectives))
@@ -123,7 +123,7 @@ def run_nsga_ii(tree, obstacles, indi_list, pop_size, max_gen, crossover_operato
 
         nsga_ii_pop.indivs.extend(offspring)
         nsga_ii_pop.natural_selection()
-        print("Generation {}: Done".format(gen + 1))
+        # print("Generation {}: Done".format(gen + 1))
         for indi in nsga_ii_pop.ParetoFront[0]:
             Pareto_store.append(list(indi.objectives))
         history[gen + 1] = Pareto_store
@@ -133,43 +133,44 @@ def run_nsga_ii(tree, obstacles, indi_list, pop_size, max_gen, crossover_operato
     for ind in nsga_ii_pop.indivs:
         POP.append(ind.chromosome)
     NDS_archive_idx, POP_ns_idx, list_obj = fast_non_dominated_sort(POP, tree)
-    print("\nEND algorithm, show result below:\n")
-    for i in range(len(NDS_archive_idx)):
-        path = POP[NDS_archive_idx[i]]
-        print("\nRount {}: {}".format(i + 1, path))
-        obj = list_obj[NDS_archive_idx[i]]
-        print("Have objective value is: {}".format(obj))
-    plot_map(POP[NDS_archive_idx[random.randint(0, len(NDS_archive_idx) - 1)]], obstacles)
-    return history
+    # print("\nEND algorithm, show result below:\n")
+    # for i in range(len(NDS_archive_idx)):
+    #     path = POP[NDS_archive_idx[i]]
+    #     print("\nRount {}: {}".format(i + 1, path))
+    #     obj = list_obj[NDS_archive_idx[i]]
+    #     print("Have objective value is: {}".format(obj))
+    # plot_map(POP[NDS_archive_idx[random.randint(0, len(NDS_archive_idx) - 1)]], obstacles)
+    # return history
+    return [list_obj[i] for i in NDS_archive_idx]
     
-start = (50, 50)
-goal = (378, 456)
-pop_size = 50
-max_gen = 100
-path_data = "data/map3.txt"
-indi_list = []
-map_size, obstacles, tree = read_map_from_file(path_data)
-rrt = RRT(start, goal, map_size, tree, step_size=15, max_iter=10000)
-space_segment = SegmentSpace(start, goal, 15, map_size, tree, number_try=25)
-for i in range(pop_size):
-    rrt.reset()
-    S_n = rrt.find_path()
-    S_m = space_segment.find_path()
-    if S_n == None and S_m == None:
-        print("Can't find any path at iterator: {}".format(i))
-        continue
-    obj_n = cal_objective(S_n, tree)
-    obj_m = cal_objective(S_m, tree)
+# start = (50, 50)
+# goal = (378, 456)
+# pop_size = 50
+# max_gen = 100
+# path_data = "data/map3.txt"
+# indi_list = []
+# map_size, obstacles, tree = read_map_from_file(path_data)
+# rrt = RRT(start, goal, map_size, tree, step_size=15, max_iter=10000)
+# space_segment = SegmentSpace(start, goal, 15, map_size, tree, number_try=25)
+# for i in range(pop_size):
+#     rrt.reset()
+#     S_n = rrt.find_path()
+#     S_m = space_segment.find_path()
+#     if S_n == None and S_m == None:
+#         print("Can't find any path at iterator: {}".format(i))
+#         continue
+#     obj_n = cal_objective(S_n, tree)
+#     obj_m = cal_objective(S_m, tree)
     
-    # Check which solution dominate other one
-    if check_dominate(obj_n, obj_m):
-        indi_list.append(Individual(S_n))
-    elif check_dominate(obj_m, obj_n):
-        indi_list.append(Individual(S_m))
-    else:
-        if S_n[0] < S_m[0]:
-            indi_list.append(Individual(S_n))
-        else:
-            indi_list.append(Individual(S_m))
+#     # Check which solution dominate other one
+#     if check_dominate(obj_n, obj_m):
+#         indi_list.append(Individual(S_n))
+#     elif check_dominate(obj_m, obj_n):
+#         indi_list.append(Individual(S_m))
+#     else:
+#         if S_n[0] < S_m[0]:
+#             indi_list.append(Individual(S_n))
+#         else:
+#             indi_list.append(Individual(S_m))
 
-run_nsga_ii(tree, obstacles, indi_list, pop_size, max_gen, path_crossover_operator, path_mutation_operator, 0.5, 0.1, cal_objective)
+# run_nsga_ii(tree, obstacles, indi_list, pop_size, max_gen, path_crossover_operator, path_mutation_operator, 0.5, 0.1, cal_objective)

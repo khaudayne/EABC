@@ -12,9 +12,16 @@ from geometry import path_crossover_operator, path_mutation_operator, path_safet
 import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
+from moo_algorithm.nsga_ii import run_nsga_ii
+from moo_algorithm.nsga_iii import run_nsga_iii
+from moo_algorithm.mode import run_mode
+from moo_algorithm.mopso import run_mopso
+from moo_algorithm.moead import run_moead, init_weight_vectors_2d
+from population import Population, Individual
+from moo_algorithm.metric import cal_hv, cal_igd
 
 ### Read info map
-path_data = "data/map3.txt"
+path_data = "data/map1.txt"
 map_size, obstacles, tree = read_map_from_file(path_data)
 ### END Read info map
 
@@ -22,30 +29,32 @@ map_size, obstacles, tree = read_map_from_file(path_data)
 p_s = 50 # Population size
 c_ef = 10 # Max count non-evolution individual to become scout bee
 c_mf = 20
-start = (50, 50)
-goal = (378, 456)
-MAX_CIRCLE = 100
+start = (201, 26)
+goal = (170, 472)
+MAX_CIRCLE = 30
 TIME_LIMIT = 50
+REF_POINT = [-math.inf, -math.inf]
 ### END Param
 
-print("START algorithm with param: ")
-print("Path map: {}".format(path_data))
-print("Population size p_s: {}".format(p_s))
-print("Max count non-evolution individual to become scout bee c_ef: {}".format(c_ef))
-print("Max time mutation path c_mf: {}".format(c_mf))
-print("Position start: {}".format(start))
-print("Position goal: {}".format(goal))
-print("Max circle: {}".format(MAX_CIRCLE))
-print("Time limit algorithm: {}".format(TIME_LIMIT))
-print("#########################################################################################")
-print("\nStart Hybrid initialization stratery!")
+# print("START algorithm with param: ")
+# print("Path map: {}".format(path_data))
+# print("Population size p_s: {}".format(p_s))
+# print("Max count non-evolution individual to become scout bee c_ef: {}".format(c_ef))
+# print("Max time mutation path c_mf: {}".format(c_mf))
+# print("Position start: {}".format(start))
+# print("Position goal: {}".format(goal))
+# print("Max circle: {}".format(MAX_CIRCLE))
+# print("Time limit algorithm: {}".format(TIME_LIMIT))
+# print("#########################################################################################")
+# print("\nStart Hybrid initialization stratery!")
 ### Hybrid initialization stratery
-start_time = time.time()
 POP = []
 stagnation_count = []
 astar = AStar(start, goal, map_size, tree)
 rrt = RRT(start, goal, map_size, tree, step_size=15, max_iter=10000)
 space_segment = SegmentSpace(start, goal, 15, map_size, tree, number_try=25)
+
+start_time = time.time()
 POP.append(astar.find_path())
 stagnation_count.append(0)
 
@@ -72,16 +81,16 @@ for i in range(1, p_s):
     stagnation_count.append(0)
 
 end_time = time.time()
-print("\nHybrid initialization stratery session end!\nTime process: {}\n".format(end_time - start_time))
+# print("\nHybrid initialization stratery session end!\nTime process: {}\n".format(end_time - start_time))
 ### END Hybrid initialization stratery
 
-print("#########################################################################################")
-print("\nStart EABC algorithm!")
+# print("#########################################################################################")
+print("EABC")
 ### EABC algorithm
 circle = 1
 while circle <= MAX_CIRCLE and end_time - start_time <= TIME_LIMIT:
-    if circle % 10 == 0:
-        print("EABC iterator: {}".format(circle))
+    # if circle % 10 == 0:
+        # print("EABC iterator: {}".format(circle))
 
     ### Increase stagnation_count
     for i in range(len(stagnation_count)):
@@ -154,7 +163,7 @@ while circle <= MAX_CIRCLE and end_time - start_time <= TIME_LIMIT:
     ### Scout bee phase
     for i in range(len(POP_ns_idx)):
         if stagnation_count[POP_ns_idx[i]] >= c_ef:
-            print("Nhay vao dayyyyyy")
+            # print("Nhay vao dayyyyyy")
             if random.random() > 0.5:
                 idx_nds_random = NDS_archive_idx[random.randint(0, len(NDS_archive_idx) - 1)]
                 idx_nds_boundary_random = NDS_archive_idx[random.randint(0, len(NDS_archive_idx) - 1)]
@@ -181,17 +190,204 @@ while circle <= MAX_CIRCLE and end_time - start_time <= TIME_LIMIT:
     circle = circle + 1
     end_time = time.time()
 
-print("\nEABC session end at iterator: {}, time process: {}\n".format(circle - 1, end_time - start_time))
+# print("\nEABC session end at iterator: {}, time process: {}\n".format(circle - 1, end_time - start_time))
+
 ### END EABC algorithm
-print("#########################################################################################")
+# print("#########################################################################################")
 NDS_archive_idx, POP_ns_idx, list_obj = fast_non_dominated_sort(POP, tree)
-print("\nEND algorithm, show result below:\n")
-for i in range(len(NDS_archive_idx)):
-    path = POP[NDS_archive_idx[i]]
-    print("\nRount {}: {}".format(i + 1, path))
-    obj = list_obj[NDS_archive_idx[i]]
-    print("Have objective value is: {}".format(obj))
-plot_map(POP[NDS_archive_idx[random.randint(0, len(NDS_archive_idx) - 1)]], obstacles)
+# print("\nEND algorithm, show result below:\n")
+# for i in range(len(NDS_archive_idx)):
+#     path = POP[NDS_archive_idx[i]]
+#     print("\nRount {}: {}".format(i + 1, path))
+#     obj = list_obj[NDS_archive_idx[i]]
+#     print("Have objective value is: {}".format(obj))
+# plot_map(POP[NDS_archive_idx[random.randint(0, len(NDS_archive_idx) - 1)]], obstacles)
+
+EABC_log = [list_obj[i] for i in NDS_archive_idx]
+for obj in EABC_log:
+    REF_POINT[0] = max(REF_POINT[0], obj[0])
+    REF_POINT[1] = max(REF_POINT[1], obj[1])
+
+end_time = time.time()
+print("EABC Done!")
+print("Time run: {}".format(end_time - start_time))
+
+## Run NSGA ii
+pop_size = 50
+indi_list = []
+max_gen = 100
+start_time = time.time()
+for i in range(pop_size):
+    rrt.reset()
+    S_n = rrt.find_path()
+    S_m = space_segment.find_path()
+    if S_n == None and S_m == None:
+        print("Can't find any path at iterator: {}".format(i))
+        continue
+    obj_n = cal_objective(S_n, tree)
+    obj_m = cal_objective(S_m, tree)
+    
+    # Check which solution dominate other one
+    if check_dominate(obj_n, obj_m):
+        indi_list.append(Individual(S_n))
+    elif check_dominate(obj_m, obj_n):
+        indi_list.append(Individual(S_m))
+    else:
+        if S_n[0] < S_m[0]:
+            indi_list.append(Individual(S_n))
+        else:
+            indi_list.append(Individual(S_m))
+
+NSGA_ii_log = run_nsga_ii(tree, obstacles, indi_list, pop_size, max_gen, path_crossover_operator, path_mutation_operator, 0.5, 0.1, cal_objective)
+for obj in NSGA_ii_log:
+    REF_POINT[0] = max(REF_POINT[0], obj[0])
+    REF_POINT[1] = max(REF_POINT[1], obj[1])
+end_time = time.time()
+print("Time run: {}".format(end_time - start_time))
+
+## Run NSGA iii
+indi_list = []
+start_time = time.time()
+for i in range(pop_size):
+    rrt.reset()
+    S_n = rrt.find_path()
+    S_m = space_segment.find_path()
+    if S_n == None and S_m == None:
+        print("Can't find any path at iterator: {}".format(i))
+        continue
+    obj_n = cal_objective(S_n, tree)
+    obj_m = cal_objective(S_m, tree)
+    
+    # Check which solution dominate other one
+    if check_dominate(obj_n, obj_m):
+        indi_list.append(Individual(S_n))
+    elif check_dominate(obj_m, obj_n):
+        indi_list.append(Individual(S_m))
+    else:
+        if S_n[0] < S_m[0]:
+            indi_list.append(Individual(S_n))
+        else:
+            indi_list.append(Individual(S_m))
+
+NSGA_iii_log = run_nsga_iii(tree, obstacles, indi_list, pop_size, max_gen, path_crossover_operator, path_mutation_operator, 0.5, 0.1, cal_objective)
+for obj in NSGA_iii_log:
+    REF_POINT[0] = max(REF_POINT[0], obj[0])
+    REF_POINT[1] = max(REF_POINT[1], obj[1])
+end_time = time.time()
+print("Time run: {}".format(end_time - start_time))
+
+## Run MODE
+indi_list = []
+start_time = time.time()
+for i in range(pop_size):
+    rrt.reset()
+    S_n = rrt.find_path()
+    S_m = space_segment.find_path()
+    if S_n == None and S_m == None:
+        print("Can't find any path at iterator: {}".format(i))
+        continue
+    obj_n = cal_objective(S_n, tree)
+    obj_m = cal_objective(S_m, tree)
+    
+    # Check which solution dominate other one
+    if check_dominate(obj_n, obj_m):
+        indi_list.append(Individual(S_n))
+    elif check_dominate(obj_m, obj_n):
+        indi_list.append(Individual(S_m))
+    else:
+        if S_n[0] < S_m[0]:
+            indi_list.append(Individual(S_n))
+        else:
+            indi_list.append(Individual(S_m))
+
+MODE_log = run_mode(tree, obstacles, indi_list, pop_size, max_gen, 0.5, 0.9, cal_objective)
+for obj in MODE_log:
+    REF_POINT[0] = max(REF_POINT[0], obj[0])
+    REF_POINT[1] = max(REF_POINT[1], obj[1])
+end_time = time.time()
+print("Time run: {}".format(end_time - start_time))
+
+## Run MOPSO
+indi_list = []
+start_time = time.time()
+for i in range(pop_size):
+    rrt.reset()
+    S_n = rrt.find_path()
+    S_m = space_segment.find_path()
+    if S_n == None and S_m == None:
+        print("Can't find any path at iterator: {}".format(i))
+        continue
+    obj_n = cal_objective(S_n, tree)
+    obj_m = cal_objective(S_m, tree)
+    
+    # Check which solution dominate other one
+    if check_dominate(obj_n, obj_m):
+        indi_list.append(Individual(S_n))
+    elif check_dominate(obj_m, obj_n):
+        indi_list.append(Individual(S_m))
+    else:
+        if S_n[0] < S_m[0]:
+            indi_list.append(Individual(S_n))
+        else:
+            indi_list.append(Individual(S_m))
+
+MOPSO_log = run_mopso(tree, obstacles, indi_list, pop_size, max_gen, 0.9, 0.4, 1.5, 1.5, cal_objective)
+for obj in MOPSO_log:
+    REF_POINT[0] = max(REF_POINT[0], obj[0])
+    REF_POINT[1] = max(REF_POINT[1], obj[1])
+end_time = time.time()
+print("Time run: {}".format(end_time - start_time))
+
+## Run MOEAD
+indi_list = []
+start_time = time.time()
+for i in range(pop_size):
+    rrt.reset()
+    S_n = rrt.find_path()
+    S_m = space_segment.find_path()
+    if S_n == None and S_m == None:
+        print("Can't find any path at iterator: {}".format(i))
+        continue
+    obj_n = cal_objective(S_n, tree)
+    obj_m = cal_objective(S_m, tree)
+    
+    # Check which solution dominate other one
+    if check_dominate(obj_n, obj_m):
+        indi_list.append(Individual(S_n))
+    elif check_dominate(obj_m, obj_n):
+        indi_list.append(Individual(S_m))
+    else:
+        if S_n[0] < S_m[0]:
+            indi_list.append(Individual(S_n))
+        else:
+            indi_list.append(Individual(S_m))
+
+MOEAD_log = run_moead(tree, obstacles, indi_list, pop_size, max_gen, 5, init_weight_vectors_2d, path_crossover_operator, path_mutation_operator, cal_objective)
+for obj in MOEAD_log:
+    REF_POINT[0] = max(REF_POINT[0], obj[0])
+    REF_POINT[1] = max(REF_POINT[1], obj[1])
+end_time = time.time()
+print("Time run: {}".format(end_time - start_time))
+
+print("REF POINT: {}".format(REF_POINT))
+EABC_hv = cal_hv(EABC_log, REF_POINT)
+print("EABC HV: {}".format(EABC_hv))
+NSGA_ii_hv = cal_hv(NSGA_ii_log, REF_POINT)
+print("NSGA ii HV: {}".format(NSGA_ii_hv))
+NSGA_iii_hv = cal_hv(NSGA_iii_log, REF_POINT)
+print("NSGA iii HV: {}".format(NSGA_iii_hv))
+MODE_hv = cal_hv(MODE_log, REF_POINT)
+print("MODE HV: {}".format(MODE_hv))
+MOPSO_hv = cal_hv(MOPSO_log, REF_POINT)
+print("MOPSO HV: {}".format(MOPSO_hv))
+MOEAD_hv = cal_hv(MOEAD_log, REF_POINT)
+print("MOEAD HV: {}".format(MOEAD_hv))
+
+# with open('log_metric/log_hv.txt', 'a') as f:
+#     f.write("{} {} {} {} {} {}\n".format(EABC_hv, NSGA_ii_hv, NSGA_iii_hv, MODE_hv, MOPSO_hv, MOEAD_hv))
+
+
+
 
 
 
