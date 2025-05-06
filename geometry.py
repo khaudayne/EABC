@@ -177,3 +177,50 @@ def fast_non_dominated_sort(paths, tree):
             POP_ns_idx.append(front[i][j])
     
     return NDS_archive_idx, POP_ns_idx, list_obj
+
+def path_crossover_operator_new(path1, path2, tree):
+    if len(path1) <= 2 or len(path2) <= 2: # Không có intermediate point
+        return path1
+    
+    len1 = len(path1)
+    len2 = len(path2)
+
+    tmp_tree = STRtree([Point(p[0], p[1]) for p in path1[1:len1 - 1]])
+    min_dis = math.inf
+    idx1 = -1
+    idx2 = -1
+    
+    for i in range(1, len2 - 1):
+        p = path2[i]
+        point = Point(p[0], p[1])
+        idx_point = tmp_tree.nearest(point)
+        dis = point.distance(tmp_tree.geometries.take(idx_point))
+        if min_dis > dis:
+            min_dis = dis
+            idx1 = idx_point
+            idx2 = i
+    
+    idx1 = idx1 + 1 # Do lấy các intermediate point có idx từ [1:len - 2] thành [0:len - 3] trong tmp_tree nên cần + 1
+    new_path1 = None
+    new_path2 = None
+    if path1[idx1][0] == path2[idx2][0] and path1[idx1][1] == path2[idx2][1]: # Khong lay cac diem trung nhau
+        new_path1 = path1[:idx1 + 1] + path2[idx2 + 1:]
+        new_path2 = path2[:idx2 + 1] + path1[idx1 + 1:]
+    else:
+        if len(tree.query(LineString([path1[idx1], path2[idx2]]), predicate='intersects')) > 0:
+            return path1
+        new_path1 = path1[:idx1 + 1] + path2[idx2:]
+        new_path2 = path2[:idx2 + 1] + path1[idx1:]
+    obj_1 = cal_objective(new_path1, tree)
+    obj_2 = cal_objective(new_path2, tree)
+    obj_path_1 = cal_objective(path1, tree)
+    if check_dominate(obj_1, obj_2):
+        if check_dominate(obj_1, obj_path_1):
+            return new_path1
+        else:
+            return path1
+    else:
+        if check_dominate(obj_2, obj_path_1):
+            return new_path2
+        else:
+            return path1
