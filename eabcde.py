@@ -10,6 +10,8 @@ import random
 import math
 from geometry import path_crossover_operator, path_crossover_operator_new, path_mutation_operator, path_safety_operator, path_shortening_operator, fast_non_dominated_sort
 import warnings
+import numpy as np
+from shapely.geometry import LineString
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 ### Read info map
@@ -19,24 +21,20 @@ map_size, obstacles, tree = read_map_from_file(path_data)
 
 ### Param
 p_s = 50 # Population size
-c_ef = 4 # Max count non-evolution individual to become scout bee
+c_ef = 5 # Max count non-evolution individual to become scout bee
 c_mf = 20
 start = (201, 26)
 goal = (170, 472)
 p_mutation = 0.1
-MAX_CIRCLE = 30
+MAX_CIRCLE = 50
 TIME_LIMIT = 50
 POP = []
 stagnation_count = []
-astar = AStar(start, goal, map_size, tree)
 rrt = RRT(start, goal, map_size, tree, step_size=15, max_iter=10000)
 space_segment = SegmentSpace(start, goal, 15, map_size, tree, number_try=25)
 
 start_time = time.time()
-POP.append(astar.find_path())
-stagnation_count.append(0)
-
-for i in range(1, p_s):
+for i in range(p_s):
     rrt.reset()
     S_n = rrt.find_path()
     S_m = space_segment.find_path()
@@ -120,38 +118,91 @@ while circle <= MAX_CIRCLE and end_time - start_time <= TIME_LIMIT:
             stagnation_count[NDS_archive_idx[i]] = 0
             POP[NDS_archive_idx[i]] = path
 
-    NDS_archive_idx, POP_ns_idx, list_obj = fast_non_dominated_sort(POP, tree)
-    NDS_objective_value = [list_obj[nds_idx] for nds_idx in NDS_archive_idx]
-    NDS_normalizee_value, is_boundary = normalization(NDS_objective_value)
-    list_idx_boundary = []
-    for j in range(len(is_boundary)):
-        if is_boundary[j]:
-             list_idx_boundary.append(NDS_archive_idx[j])
     ### Scout bee phase
-    for i in range(len(POP_ns_idx)):
-        if stagnation_count[POP_ns_idx[i]] >= c_ef:
-            if random.random() > 0.5:
-                idx_nds_random = NDS_archive_idx[random.randint(0, len(NDS_archive_idx) - 1)]
-                idx_nds_boundary_random = NDS_archive_idx[random.randint(0, len(NDS_archive_idx) - 1)]
-                if len(list_idx_boundary) > 0:
-                    idx_nds_boundary_random = list_idx_boundary[random.randint(0, len(list_idx_boundary) - 1)]
-                nds_path = POP[idx_nds_random][:]
-                nds_boundary = POP[idx_nds_boundary_random][:]
-                POP[POP_ns_idx[i]] = path_crossover_operator(nds_boundary, nds_path, tree)
-            else:
-                number_RRT_path = 5
-                final_rrt_path = None
-                min_path_len = math.inf
-                for j in range(number_RRT_path):
-                    rrt.reset()
-                    rrt_new_path = rrt.find_path()
-                    obj_rrt_path = cal_objective(rrt_new_path, tree)
-                    if min_path_len > obj_rrt_path[0]: # Compare path length
-                        min_path_len = obj_rrt_path[0]
-                        final_rrt_path = rrt_new_path
-                POP[POP_ns_idx[i]] = final_rrt_path
-                
-            stagnation_count[POP_ns_idx[i]] = 0
+    list_idx_scout = []
+    for i in range(len(stagnation_count)):
+        if(stagnation_count[i] >= c_ef):
+            list_idx_scout.append(i)
+
+    if len(list_idx_scout) > 0:
+        # gen_offspring_de
+        offspring = []
+        
+        for i in range(len(POP)):
+            indi = POP[i]
+            indi1 = POP[random.randint(0, len(POP) - 1)]
+            indi2 = POP[random.randint(0, len(POP) - 1)]
+
+            # rand_1
+            l1 = []
+            l2 = []
+            for p in indi:
+                min_dis = -1
+                idx = -1
+                for i in range(len(indi1)):
+                    p1 = indi1[i]
+                    if min_dis == -1 or min_dis > (p1[0] - p[0]) ** 2 + (p1[1] - p[1]) ** 2:
+                        min_dis = (p1[0] - p[0]) ** 2 + (p1[1] - p[1]) ** 2
+                        idx = i
+                l1.append(indi1[idx])
+
+                min_dis = -1
+                idx = -1
+                for i in range(len(indi2)):
+                    p1 = indi2[i]
+                    if min_dis == -1 or min_dis > (p1[0] - p[0]) ** 2 + (p1[1] - p[1]) ** 2:
+                        min_dis = (p1[0] - p[0]) ** 2 + (p1[1] - p[1]) ** 2
+                        idx = i
+                l2.append(indi2[idx])
+            new_indi = []
+            for i, p in enumerate(indi):
+                if random.random() > 0.9:
+                    new_indi.append(p)
+                else:
+                    new_indi.append((int(p[0] + 0.5 * (l1[i][0] - l2[i][0])), int(p[1] + 0.5 * (l1[i][1] - l2[i][1]))))
+            line = LineString([p for p in new_indi])
+            candidates = tree.query(line, predicate='intersects')
+            if len(candidates) == 0:
+                offspring.append(new_indi)
+        
+        if len(offspring) <= len(list_idx_scout):
+            for i in range(len(offspring)):
+                POP[list_idx_scout[i]] = offspring[i]
+                stagnation_count[list_idx_scout[i]] = 0
+        else:
+            sz_offspring = len(offspring)
+            crowding_distance = [0] * sz_offspring
+            offspring.extend(POP)
+            NDS_archive_idx, _, list_obj = fast_non_dominated_sort(offspring, tree)
+            new_list_obj = [
+                [list_obj[idx], idx] for idx in NDS_archive_idx
+            ]
+
+            # calcculate crowding distance
+            for m in range(2):
+                new_list_obj.sort(key=lambda x: x[0][m])
+                m_values = [x[0][m] for x in new_list_obj]
+                scale = max(m_values) - min(m_values)
+                if scale == 0: scale = 1
+
+                for idx in NDS_archive_idx:
+                    if idx < sz_offspring:
+                        tmp_idx = None
+                        for i in range(len(new_list_obj)):
+                            if idx == new_list_obj[i][1]:
+                                tmp_idx = i
+                                break
+                        if tmp_idx == 0 or tmp_idx == len(new_list_obj) - 1:
+                            crowding_distance[idx] = 100000000
+                        else:
+                            crowding_distance[idx] += (new_list_obj[i + 1][0][m] - new_list_obj[i - 1][0][m]) / scale
+                    else:
+                        break
+            list_idx_offstring = np.argsort(crowding_distance)[-len(list_idx_scout):][::-1].tolist()
+            for i in range(len(list_idx_scout)):
+                POP[list_idx_scout[i]] = offspring[list_idx_offstring[i]]
+                stagnation_count[list_idx_scout[i]] = 0
+
 
     circle = circle + 1
     end_time = time.time()
