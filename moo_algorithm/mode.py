@@ -143,7 +143,6 @@ def rand_1(indi : Individual, indi1: Individual, indi2: Individual, F, CR, tree)
 
 
 def run_mode(tree, obstacles, indi_list, pop_size, max_gen, F, CR, cal_fitness):
-    print("MODE")
     history = {}
     mode_pop = MODEPopulation(pop_size)
     mode_pop.pre_indi_gen(indi_list)
@@ -171,7 +170,6 @@ def run_mode(tree, obstacles, indi_list, pop_size, max_gen, F, CR, cal_fitness):
             Pareto_store.append(list(indi.objectives))
         history[gen + 1] = Pareto_store
 
-    print("MODE Done!")
     POP = []
     for ind in mode_pop.indivs:
         POP.append(ind.chromosome)

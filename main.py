@@ -279,6 +279,7 @@ end_time = time.time()
 print("Time run: {}".format(end_time - start_time))
 
 ## Run MODE
+print("MODE")
 indi_list = []
 start_time = time.time()
 for i in range(pop_size):
@@ -307,6 +308,7 @@ for obj in MODE_log:
     REF_POINT[0] = max(REF_POINT[0], obj[0])
     REF_POINT[1] = max(REF_POINT[1], obj[1])
 end_time = time.time()
+print("MODE Done!")
 print("Time run: {}".format(end_time - start_time))
 
 ## Run MOPSO
@@ -556,44 +558,10 @@ while circle <= MAX_CIRCLE and end_time - start_time <= TIME_LIMIT:
 
     circle = circle + 1
     end_time = time.time()
-
-for i in range(len(POP)):
-    indi = POP[i]
-    indi1 = POP[random.randint(0, len(POP) - 1)]
-    indi2 = POP[random.randint(0, len(POP) - 1)]
-     # rand_1
-    l1 = []
-    l2 = []
-    for p in indi:
-        min_dis = -1
-        idx = -1
-        for i in range(len(indi1)):
-            p1 = indi1[i]
-            if min_dis == -1 or min_dis > (p1[0] - p[0]) ** 2 + (p1[1] - p[1]) ** 2:
-                min_dis = (p1[0] - p[0]) ** 2 + (p1[1] - p[1]) ** 2
-                idx = i
-        l1.append(indi1[idx])
-        min_dis = -1
-        idx = -1
-        for i in range(len(indi2)):
-            p1 = indi2[i]
-            if min_dis == -1 or min_dis > (p1[0] - p[0]) ** 2 + (p1[1] - p[1]) ** 2:
-                min_dis = (p1[0] - p[0]) ** 2 + (p1[1] - p[1]) ** 2
-                idx = i
-        l2.append(indi2[idx])
-    new_indi = []
-    for i, p in enumerate(indi):
-        if random.random() > 0.9:
-            new_indi.append(p)
-        else:
-            new_indi.append((int(p[0] + 0.5 * (l1[i][0] - l2[i][0])), int(p[1] + 0.5 * (l1[i][1] - l2[i][1]))))
-    line = LineString([p for p in new_indi])
-    candidates = tree.query(line, predicate='intersects')
-    if len(candidates) == 0:
-        POP.append(new_indi)
-
-NDS_archive_idx, POP_ns_idx, list_obj = fast_non_dominated_sort(POP, tree)
-EABCDE_log = [list_obj[i] for i in NDS_archive_idx]
+indi_list = []
+for path in POP:
+    indi_list.append(Individual(path))
+EABCDE_log = run_mode(tree, obstacles, indi_list, len(indi_list), max_gen, 0.5, 0.9, cal_objective)
 for obj in EABCDE_log:
     REF_POINT[0] = max(REF_POINT[0], obj[0])
     REF_POINT[1] = max(REF_POINT[1], obj[1])
