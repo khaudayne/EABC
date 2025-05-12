@@ -22,6 +22,17 @@ from moo_algorithm.moead import run_moead, init_weight_vectors_2d
 from population import Population, Individual
 from moo_algorithm.metric import cal_hv, cal_igd
 
+### Define test case
+list_start_test_case = [
+    [(120, 60), (36, 453), (23, 202), (201, 26)],
+    [(36, 101), (32, 439), (28, 350), (225, 93)],
+    [(39, 20), (44, 485), (9, 320), (297, 21)]
+]
+list_end_test_case = [
+    [(454, 437), (469, 121), (477, 339), (170, 472)],
+    [(429, 473), (486, 164), (487, 272), (251, 471)],
+    [(364, 455), (461, 32), (421, 265), (271, 487)]
+]
 ### Read info map
 path_data = "data/map3.txt"
 map_size, obstacles, tree = read_map_from_file(path_data)
@@ -31,8 +42,9 @@ map_size, obstacles, tree = read_map_from_file(path_data)
 p_s = 50 # Population size
 c_ef = 10 # Max count non-evolution individual to become scout bee
 c_mf = 20
-start = (39, 20)
-goal = (364, 455)
+start = list_start_test_case[2][3]
+goal = list_end_test_case[2][3]
+print("START POINT: {}, GOAL POINT: {}".format(start, goal))
 MAX_CIRCLE = 30
 TIME_LIMIT = 50
 REF_POINT = [-math.inf, -math.inf]
@@ -378,7 +390,7 @@ p_s = 50 # Population size
 c_ef = 3 # Max count non-evolution individual to become scout bee
 c_mf = 20
 p_mutation = 0.2
-MAX_CIRCLE = 100
+MAX_CIRCLE = 30
 TIME_LIMIT = 15
 POP = []
 stagnation_count = []
