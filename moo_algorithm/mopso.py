@@ -167,7 +167,7 @@ class MOPSOPopulation(Population):
         self.indivs = new_indivs
 
 def run_mopso(tree, obstacles, indi_list, pop_size, max_gen, w, min_w, c1, c2, cal_fitness):
-    print("MOPSO")
+    print("\nMOPSO")
     history = {}
     mopso_pop = MOPSOPopulation(pop_size)
     mopso_pop.pre_indi_gen(indi_list)
@@ -213,7 +213,7 @@ def run_mopso(tree, obstacles, indi_list, pop_size, max_gen, w, min_w, c1, c2, c
     #     obj = list_obj[NDS_archive_idx[i]]
     #     print("Have objective value is: {}".format(obj))
     # plot_map(POP[NDS_archive_idx[random.randint(0, len(NDS_archive_idx) - 1)]], obstacles)
-    
+    print("NNS: {}, RNS: {}".format(len(NDS_archive_idx), len(NDS_archive_idx) / len(POP)))
     # return history
     return [list_obj[i] for i in NDS_archive_idx]
 

@@ -102,7 +102,7 @@ class MOEADPopulation(Population):
 
 def run_moead(tree, obstacles, indi_list, pop_size, max_gen, neighborhood_size, 
               init_weight_vectors, crossover_operator,mutation_operator, cal_fitness):
-    print("MOEA/D")
+    print("\nMOEA/D")
     moead_pop = MOEADPopulation(pop_size, neighborhood_size, init_weight_vectors)
     moead_pop.pre_indi_gen(indi_list)
     history = {}
@@ -143,7 +143,7 @@ def run_moead(tree, obstacles, indi_list, pop_size, max_gen, neighborhood_size,
     #     obj = list_obj[NDS_archive_idx[i]]
     #     print("Have objective value is: {}".format(obj))
     # plot_map(POP[NDS_archive_idx[random.randint(0, len(NDS_archive_idx) - 1)]], obstacles)
-    
+    print("NNS: {}, RNS: {}".format(len(NDS_archive_idx), len(NDS_archive_idx) / len(POP)))
     # return history
     return [list_obj[i] for i in NDS_archive_idx]
 

@@ -182,6 +182,8 @@ def run_mode(tree, obstacles, indi_list, pop_size, max_gen, F, CR, cal_fitness):
     #     print("Have objective value is: {}".format(obj))
     # plot_map(POP[NDS_archive_idx[random.randint(0, len(NDS_archive_idx) - 1)]], obstacles)
     # return history
+    print("NNS: {}, RNS: {}".format(len(NDS_archive_idx), len(NDS_archive_idx) / len(POP)))
+
     return [list_obj[i] for i in NDS_archive_idx]
 
 

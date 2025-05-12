@@ -20,7 +20,7 @@ from moo_algorithm.mode import run_mode
 from moo_algorithm.mopso import run_mopso
 from moo_algorithm.moead import run_moead, init_weight_vectors_2d
 from population import Population, Individual
-from moo_algorithm.metric import cal_hv, cal_igd
+from moo_algorithm.metric import cal_hv, cal_igd, cal_sc
 
 ### Define test case
 list_start_test_case = [
@@ -69,7 +69,7 @@ rrt = RRT(start, goal, map_size, tree, step_size=15, max_iter=10000)
 space_segment = SegmentSpace(start, goal, 15, map_size, tree, number_try=25)
 
 start_time = time.time()
-print("EABC")
+print("\nEABC")
 POP.append(astar.find_path())
 stagnation_count.append(0)
 
@@ -224,6 +224,7 @@ for obj in EABC_log:
 
 end_time = time.time()
 print("EABC Done!")
+print("NNS: {}, RNS: {}".format(len(NDS_archive_idx), len(NDS_archive_idx) / len(POP)))
 print("Time run: {}".format(end_time - start_time))
 
 ## Run NSGA ii
@@ -291,7 +292,7 @@ end_time = time.time()
 print("Time run: {}".format(end_time - start_time))
 
 ## Run MODE
-print("MODE")
+print("\nMODE")
 indi_list = []
 start_time = time.time()
 for i in range(pop_size):
@@ -395,7 +396,7 @@ TIME_LIMIT = 15
 POP = []
 stagnation_count = []
 start_time = time.time()
-print("EABCDE")
+print("\nEABCDE")
 for i in range(p_s):
     rrt.reset()
     S_n = rrt.find_path()
@@ -583,9 +584,9 @@ print("EABCDE Done!")
 print("Time run: {}".format(end_time - start_time))
 
 
-print("REF POINT: {}".format(REF_POINT))
+print("\nREF POINT: {}".format(REF_POINT))
 EABC_hv = cal_hv(EABC_log, REF_POINT)
-print("EABC HV: {}".format(EABC_hv))
+print("\nEABC HV: {}".format(EABC_hv))
 NSGA_ii_hv = cal_hv(NSGA_ii_log, REF_POINT)
 print("NSGA ii HV: {}".format(NSGA_ii_hv))
 NSGA_iii_hv = cal_hv(NSGA_iii_log, REF_POINT)
@@ -601,8 +602,13 @@ print("EABCDE HV: {}".format(EABCDE_hv))
 # with open('log_metric/log_hv.txt', 'a') as f:
 #     f.write("{} {} {} {} {} {}\n".format(EABC_hv, NSGA_ii_hv, NSGA_iii_hv, MODE_hv, MOPSO_hv, MOEAD_hv))
 
-
-
+SC_log = cal_sc([EABC_log, NSGA_ii_log, NSGA_iii_log, MODE_log, MOPSO_log, MOEAD_log, EABCDE_log], check_dominate)
+header = ["", "EABC", "NSGA_ii", "NSGA_iii", "MODE", "MOPSO", "MOEAD", "EABCDE"]
+for i in range(len(SC_log)):
+    SC_log[i].insert(0, header[i + 1])
+print(f"\n{header[0]:10}|{header[1]:^10}|{header[2]:^10}|{header[3]:^10}|{header[4]:^10}|{header[5]:^10}|{header[6]:^10}|{header[7]:^10}|")
+for row in SC_log:
+    print(f"{row[0]:<10}|{row[1]:^10.4}|{row[2]:^10.4}|{row[3]:^10.4}|{row[4]:^10.4}|{row[5]:^10.4}|{row[6]:^10.4}|{row[7]:^10.4}|")
 
 
 

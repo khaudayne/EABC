@@ -98,7 +98,7 @@ class NSGAIIPopulation(Population):
 
 def run_nsga_ii(tree, obstacles, indi_list, pop_size, max_gen, crossover_operator, mutation_operator, 
                 crossover_rate, mutation_rate, cal_fitness):
-    print("NSGA-II")
+    print("\nNSGA-II")
     history = {}
     nsga_ii_pop = NSGAIIPopulation(pop_size)
     nsga_ii_pop.pre_indi_gen(indi_list)
@@ -141,6 +141,7 @@ def run_nsga_ii(tree, obstacles, indi_list, pop_size, max_gen, crossover_operato
     #     print("Have objective value is: {}".format(obj))
     # plot_map(POP[NDS_archive_idx[random.randint(0, len(NDS_archive_idx) - 1)]], obstacles)
     # return history
+    print("NNS: {}, RNS: {}".format(len(NDS_archive_idx), len(NDS_archive_idx) / len(POP)))
     return [list_obj[i] for i in NDS_archive_idx]
     
 # start = (50, 50)
