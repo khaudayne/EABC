@@ -1,5 +1,6 @@
 ##### Library
-from read_map import read_map_from_file
+from read_map import read_map_from_file, read_map_from_polygons
+from convert_map import image_to_obstacle_map
 from AStar import AStar
 from space_segment import SegmentSpace
 from RRT import RRT
@@ -34,16 +35,19 @@ list_end_test_case = [
     [(364, 455), (461, 32), (421, 265), (271, 487)]
 ]
 ### Read info map
-path_data = "data/map3.txt"
-map_size, obstacles, tree = read_map_from_file(path_data)
+# path_data = "data/map3.txt"
+# map_size, obstacles, tree = read_map_from_file(path_data)
+
+map_size, polygons = image_to_obstacle_map("raw_picture/2.png")
+obstacles, tree = read_map_from_polygons(polygons)
 ### END Read info map
 
 ### Param
 p_s = 50 # Population size
 c_ef = 10 # Max count non-evolution individual to become scout bee
 c_mf = 20
-start = list_start_test_case[2][3]
-goal = list_end_test_case[2][3]
+start = (250, 25)
+goal = (82, 474)
 print("START POINT: {}, GOAL POINT: {}".format(start, goal))
 MAX_CIRCLE = 30
 TIME_LIMIT = 50

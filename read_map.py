@@ -1,4 +1,4 @@
-from shapely.geometry import Polygon
+from shapely.geometry import Polygon, Point
 from shapely.strtree import STRtree
 def read_map_from_file(file_path):
     with open(file_path, 'r') as file:
@@ -26,3 +26,11 @@ def read_map_from_file(file_path):
         obstacles[i] = Polygon(obstacles[i])
     tree = STRtree(obstacles)
     return (width, height), obstacles, tree
+
+def read_map_from_polygons(polygons):
+    obstacles = []
+    for poly in polygons:
+        obstacles.append(Polygon(poly))
+
+    tree = STRtree(obstacles)
+    return obstacles, tree

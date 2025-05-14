@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from read_map import read_map_from_file
+from read_map import read_map_from_file, read_map_from_polygons
+from convert_map import image_to_obstacle_map
 def plot_map(route, obstacles, size_x = 500, size_y = 500):
     """
     Vẽ bản đồ với các vật cản (đa giác) trong không gian 500x500.
@@ -29,6 +30,13 @@ def plot_map(route, obstacles, size_x = 500, size_y = 500):
         ax.legend()
     plt.show()
 
+### Cách đọc map .txt
 # path_data = "data/map1.txt"
 # map_size, obstacles, tree = read_map_from_file(path_data)
+# plot_map([], obstacles)
+
+
+### Cách đọc raw map
+# map_size, polygons = image_to_obstacle_map("raw_picture/1.png")
+# obstacles, tree = read_map_from_polygons(polygons)
 # plot_map([], obstacles)
