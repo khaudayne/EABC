@@ -224,3 +224,49 @@ def path_crossover_operator_new(path1, path2, tree):
             return new_path2
         else:
             return path1
+        
+def fnds(list_obj):
+    values1 = []
+    values2 = []
+    for obj_value in list_obj:
+        values1.append(obj_value[0])
+        values2.append(obj_value[1])
+
+    S = [[] for _ in range(len(values1))]
+    front = [[]]
+    n = [0 for _ in range(len(values1))]
+    rank = [0 for _ in range(len(values1))]
+
+    for p in range(len(values1)):
+        S[p] = []
+        n[p] = 0
+        for q in range(len(values1)):
+            if (values1[p] < values1[q] and values2[p] < values2[q]) or \
+               (values1[p] <= values1[q] and values2[p] < values2[q]) or \
+               (values1[p] < values1[q] and values2[p] <= values2[q]):
+                S[p].append(q)
+            elif (values1[q] < values1[p] and values2[q] < values2[p]) or \
+                 (values1[q] <= values1[p] and values2[q] < values2[p]) or \
+                 (values1[q] < values1[p] and values2[q] <= values2[p]):
+                n[p] += 1
+        if n[p] == 0:
+            rank[p] = 0
+            if p not in front[0]:
+                front[0].append(p)
+
+    i = 0
+    while front[i]:
+        Q = []
+        for p in front[i]:
+            for q in S[p]:
+                n[q] -= 1
+                if n[q] == 0:
+                    rank[q] = i + 1
+                    if q not in Q:
+                        Q.append(q)
+        i += 1
+        front.append(Q)
+    list_obj_front = []
+    for idx in front[0]:
+        list_obj_front.append(list_obj[idx])
+    return list_obj_front

@@ -10,7 +10,7 @@ import random
 import math
 import numpy as np
 from shapely.geometry import LineString
-from geometry import path_crossover_operator_new, path_crossover_operator, path_mutation_operator, path_safety_operator, path_shortening_operator, fast_non_dominated_sort
+from geometry import path_crossover_operator_new, path_crossover_operator, path_mutation_operator, path_safety_operator, path_shortening_operator, fast_non_dominated_sort, fnds
 import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -49,6 +49,9 @@ MAX_CIRCLE = 30
 TIME_LIMIT = 50
 REF_POINT = [-math.inf, -math.inf]
 ### END Param
+
+### HISTORY OBJ
+HISTORY = []
 
 # print("START algorithm with param: ")
 # print("Path map: {}".format(path_data))
@@ -227,6 +230,8 @@ print("EABC Done!")
 print("NNS: {}, RNS: {}".format(len(NDS_archive_idx), len(NDS_archive_idx) / len(POP)))
 print("Time run: {}".format(end_time - start_time))
 
+HISTORY.extend(EABC_log)
+
 ## Run NSGA ii
 pop_size = 50
 indi_list = []
@@ -260,6 +265,8 @@ for obj in NSGA_ii_log:
 end_time = time.time()
 print("Time run: {}".format(end_time - start_time))
 
+HISTORY.extend(NSGA_ii_log)
+
 ## Run NSGA iii
 indi_list = []
 start_time = time.time()
@@ -290,6 +297,9 @@ for obj in NSGA_iii_log:
     REF_POINT[1] = max(REF_POINT[1], obj[1])
 end_time = time.time()
 print("Time run: {}".format(end_time - start_time))
+
+HISTORY.extend(NSGA_iii_log)
+
 
 ## Run MODE
 print("\nMODE")
@@ -324,6 +334,9 @@ end_time = time.time()
 print("MODE Done!")
 print("Time run: {}".format(end_time - start_time))
 
+HISTORY.extend(MODE_log)
+
+
 ## Run MOPSO
 indi_list = []
 start_time = time.time()
@@ -355,6 +368,9 @@ for obj in MOPSO_log:
 end_time = time.time()
 print("Time run: {}".format(end_time - start_time))
 
+HISTORY.extend(MOPSO_log)
+
+
 ## Run MOEAD
 indi_list = []
 start_time = time.time()
@@ -385,6 +401,8 @@ for obj in MOEAD_log:
     REF_POINT[1] = max(REF_POINT[1], obj[1])
 end_time = time.time()
 print("Time run: {}".format(end_time - start_time))
+
+HISTORY.extend(MOEAD_log)
 
 # Run EABCDE
 p_s = 50 # Population size
@@ -583,6 +601,8 @@ end_time = time.time()
 print("EABCDE Done!")
 print("Time run: {}".format(end_time - start_time))
 
+HISTORY.extend(EABCDE_log)
+
 
 print("\nREF POINT: {}".format(REF_POINT))
 EABC_hv = cal_hv(EABC_log, REF_POINT)
@@ -610,5 +630,18 @@ print(f"\n{header[0]:10}|{header[1]:^10}|{header[2]:^10}|{header[3]:^10}|{header
 for row in SC_log:
     print(f"{row[0]:<10}|{row[1]:^10.4}|{row[2]:^10.4}|{row[3]:^10.4}|{row[4]:^10.4}|{row[5]:^10.4}|{row[6]:^10.4}|{row[7]:^10.4}|")
 
-
-
+pareto_front = fnds(HISTORY)
+EABC_igd = cal_igd(EABC_log, pareto_front)
+print("\nEABC IGD: {}".format(EABC_igd))
+NSGA_ii_igd = cal_igd(NSGA_ii_log, pareto_front)
+print("NSGA ii IGD: {}".format(NSGA_ii_igd))
+NSGA_iii_igd = cal_igd(NSGA_iii_log, pareto_front)
+print("NSGA iii IGD: {}".format(NSGA_iii_igd))
+MODE_igd = cal_igd(MODE_log, pareto_front)
+print("MODE IGD: {}".format(MODE_igd))
+MOPSO_igd = cal_igd(MOPSO_log, pareto_front)
+print("MOPSO IGD: {}".format(MOPSO_igd))
+MOEAD_igd = cal_igd(MOEAD_log, pareto_front)
+print("MOEAD IGD: {}".format(MOEAD_igd))
+EABCDE_igd = cal_igd(EABCDE_log, pareto_front)
+print("EABCDE IGD: {}".format(EABCDE_igd))

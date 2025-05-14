@@ -13,6 +13,8 @@ def cal_hv(front, ref_point):
 def cal_igd(front, optimal_front):
     #front = np.array([[0.1, 0.5], [0.3, 0.7], [0.2, 0.4], [0.4, 0.8], [0.9, 0.9]])
     #optimal_front = np.array([[0.1, 0.5], [0.3, 0.7], [0.2, 0.4], [0.4, 0.8], [0.9, 0.9]])
+    front = np.array(front)
+    optimal_front = np.array(optimal_front)
     ind = IGD(optimal_front)
     return ind(front)
             
