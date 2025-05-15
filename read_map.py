@@ -30,7 +30,8 @@ def read_map_from_file(file_path):
 def read_map_from_polygons(polygons):
     obstacles = []
     for poly in polygons:
-        obstacles.append(Polygon(poly))
+        if len(poly) > 2:
+            obstacles.append(Polygon(poly))
 
     tree = STRtree(obstacles)
     return obstacles, tree

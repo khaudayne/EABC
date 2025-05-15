@@ -38,7 +38,7 @@ list_end_test_case = [
 # path_data = "data/map3.txt"
 # map_size, obstacles, tree = read_map_from_file(path_data)
 
-map_size, polygons = image_to_obstacle_map("raw_picture/2.png")
+map_size, polygons = image_to_obstacle_map("raw_picture/4.png")
 obstacles, tree = read_map_from_polygons(polygons)
 ### END Read info map
 
@@ -46,8 +46,8 @@ obstacles, tree = read_map_from_polygons(polygons)
 p_s = 50 # Population size
 c_ef = 10 # Max count non-evolution individual to become scout bee
 c_mf = 20
-start = (250, 25)
-goal = (82, 474)
+start = (15, 150)
+goal = (316, 487)
 print("START POINT: {}, GOAL POINT: {}".format(start, goal))
 MAX_CIRCLE = 30
 TIME_LIMIT = 50
