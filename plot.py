@@ -37,6 +37,6 @@ def plot_map(route, obstacles, size_x = 500, size_y = 500):
 
 
 ### Cách đọc raw map
-# map_size, polygons = image_to_obstacle_map("raw_picture/1.png")
+# map_size, polygons = image_to_obstacle_map("raw_picture/9.png")
 # obstacles, tree = read_map_from_polygons(polygons)
 # plot_map([], obstacles)

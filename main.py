@@ -38,7 +38,7 @@ list_end_test_case = [
 # path_data = "data/map3.txt"
 # map_size, obstacles, tree = read_map_from_file(path_data)
 
-map_size, polygons = image_to_obstacle_map("raw_picture/4.png")
+map_size, polygons = image_to_obstacle_map("raw_picture/9.png")
 obstacles, tree = read_map_from_polygons(polygons)
 ### END Read info map
 
@@ -46,8 +46,8 @@ obstacles, tree = read_map_from_polygons(polygons)
 p_s = 50 # Population size
 c_ef = 10 # Max count non-evolution individual to become scout bee
 c_mf = 20
-start = (15, 150)
-goal = (316, 487)
+start = (44, 188)
+goal = (461, 58)
 print("START POINT: {}, GOAL POINT: {}".format(start, goal))
 MAX_CIRCLE = 30
 TIME_LIMIT = 50
@@ -232,7 +232,7 @@ for obj in EABC_log:
 end_time = time.time()
 print("EABC Done!")
 print("NNS: {}, RNS: {}".format(len(NDS_archive_idx), len(NDS_archive_idx) / len(POP)))
-print("Time run: {}".format(end_time - start_time))
+print("Time run: {}".format(round(end_time - start_time, 2)))
 
 HISTORY.extend(EABC_log)
 
@@ -262,12 +262,12 @@ for i in range(pop_size):
         else:
             indi_list.append(Individual(S_m))
 
-NSGA_ii_log = run_nsga_ii(tree, obstacles, indi_list, pop_size, max_gen, path_crossover_operator, path_mutation_operator, 0.5, 0.1, cal_objective)
+NSGA_ii_log = run_nsga_ii(tree, obstacles, indi_list, len(indi_list), max_gen, path_crossover_operator, path_mutation_operator, 0.5, 0.1, cal_objective)
 for obj in NSGA_ii_log:
     REF_POINT[0] = max(REF_POINT[0], obj[0])
     REF_POINT[1] = max(REF_POINT[1], obj[1])
 end_time = time.time()
-print("Time run: {}".format(end_time - start_time))
+print("Time run: {}".format(round(end_time - start_time, 2)))
 
 HISTORY.extend(NSGA_ii_log)
 
@@ -295,12 +295,12 @@ for i in range(pop_size):
         else:
             indi_list.append(Individual(S_m))
 
-NSGA_iii_log = run_nsga_iii(tree, obstacles, indi_list, pop_size, max_gen, path_crossover_operator, path_mutation_operator, 0.5, 0.1, cal_objective)
+NSGA_iii_log = run_nsga_iii(tree, obstacles, indi_list, len(indi_list), max_gen, path_crossover_operator, path_mutation_operator, 0.5, 0.1, cal_objective)
 for obj in NSGA_iii_log:
     REF_POINT[0] = max(REF_POINT[0], obj[0])
     REF_POINT[1] = max(REF_POINT[1], obj[1])
 end_time = time.time()
-print("Time run: {}".format(end_time - start_time))
+print("Time run: {}".format(round(end_time - start_time, 2)))
 
 HISTORY.extend(NSGA_iii_log)
 
@@ -330,13 +330,13 @@ for i in range(pop_size):
         else:
             indi_list.append(Individual(S_m))
 
-MODE_log = run_mode(tree, obstacles, indi_list, pop_size, max_gen, 0.5, 0.9, cal_objective)
+MODE_log = run_mode(tree, obstacles, indi_list, len(indi_list), max_gen, 0.5, 0.9, cal_objective)
 for obj in MODE_log:
     REF_POINT[0] = max(REF_POINT[0], obj[0])
     REF_POINT[1] = max(REF_POINT[1], obj[1])
 end_time = time.time()
 print("MODE Done!")
-print("Time run: {}".format(end_time - start_time))
+print("Time run: {}".format(round(end_time - start_time, 2)))
 
 HISTORY.extend(MODE_log)
 
@@ -365,12 +365,12 @@ for i in range(pop_size):
         else:
             indi_list.append(Individual(S_m))
 
-MOPSO_log = run_mopso(tree, obstacles, indi_list, pop_size, max_gen, 0.9, 0.4, 1.5, 1.5, cal_objective)
+MOPSO_log = run_mopso(tree, obstacles, indi_list, len(indi_list), max_gen, 0.9, 0.4, 1.5, 1.5, cal_objective)
 for obj in MOPSO_log:
     REF_POINT[0] = max(REF_POINT[0], obj[0])
     REF_POINT[1] = max(REF_POINT[1], obj[1])
 end_time = time.time()
-print("Time run: {}".format(end_time - start_time))
+print("Time run: {}".format(round(end_time - start_time, 2)))
 
 HISTORY.extend(MOPSO_log)
 
@@ -399,12 +399,12 @@ for i in range(pop_size):
         else:
             indi_list.append(Individual(S_m))
 
-MOEAD_log = run_moead(tree, obstacles, indi_list, pop_size, max_gen, 5, init_weight_vectors_2d, path_crossover_operator, path_mutation_operator, cal_objective)
+MOEAD_log = run_moead(tree, obstacles, indi_list, len(indi_list), max_gen, 5, init_weight_vectors_2d, path_crossover_operator, path_mutation_operator, cal_objective)
 for obj in MOEAD_log:
     REF_POINT[0] = max(REF_POINT[0], obj[0])
     REF_POINT[1] = max(REF_POINT[1], obj[1])
 end_time = time.time()
-print("Time run: {}".format(end_time - start_time))
+print("Time run: {}".format(round(end_time - start_time, 2)))
 
 HISTORY.extend(MOEAD_log)
 
@@ -426,23 +426,15 @@ for i in range(p_s):
     if S_n == None and S_m == None:
         print("Can't find any path at iterator: {}".format(i))
         continue
-    obj_n = cal_objective(S_n, tree)
-    obj_m = cal_objective(S_m, tree)
-    
-    # Check which solution dominate other one
-    if check_dominate(obj_n, obj_m):
-        POP.append(S_n)
-    elif check_dominate(obj_m, obj_n):
-        POP.append(S_m)
-    else:
-        if S_n[0] < S_m[0]:
-            POP.append(S_n)
-        else:
-            POP.append(S_m)
+    POP.append(S_n)
     stagnation_count.append(0)
+
+tmp_start_time = time.time()
 end_time = time.time()
+print("\nHybrid initialization stratery session end!\nTime process: {}\n".format(end_time - start_time))
+
 circle = 1
-while circle <= MAX_CIRCLE and end_time - start_time <= TIME_LIMIT:
+while circle <= MAX_CIRCLE and end_time - tmp_start_time <= TIME_LIMIT:
     ### Increase stagnation_count
     for i in range(len(stagnation_count)):
         stagnation_count[i] += 1
@@ -593,6 +585,8 @@ while circle <= MAX_CIRCLE and end_time - start_time <= TIME_LIMIT:
 
     circle = circle + 1
     end_time = time.time()
+print("\nEABCDE session end at iterator: {}, time process: {}\n".format(circle - 1, end_time - tmp_start_time))
+
 indi_list = []
 for path in POP:
     indi_list.append(Individual(path))
@@ -603,26 +597,26 @@ for obj in EABCDE_log:
 
 end_time = time.time()
 print("EABCDE Done!")
-print("Time run: {}".format(end_time - start_time))
+print("Time run: {}".format(round(end_time - start_time, 2)))
 
 HISTORY.extend(EABCDE_log)
 
 
 print("\nREF POINT: {}".format(REF_POINT))
 EABC_hv = cal_hv(EABC_log, REF_POINT)
-print("\nEABC HV: {}".format(EABC_hv))
+print("\nEABC HV: {}".format(round(EABC_hv, 2)))
 NSGA_ii_hv = cal_hv(NSGA_ii_log, REF_POINT)
-print("NSGA ii HV: {}".format(NSGA_ii_hv))
+print("NSGA ii HV: {}".format(round(NSGA_ii_hv, 2)))
 NSGA_iii_hv = cal_hv(NSGA_iii_log, REF_POINT)
-print("NSGA iii HV: {}".format(NSGA_iii_hv))
+print("NSGA iii HV: {}".format(round(NSGA_iii_hv, 2)))
 MODE_hv = cal_hv(MODE_log, REF_POINT)
-print("MODE HV: {}".format(MODE_hv))
+print("MODE HV: {}".format(round(MODE_hv, 2)))
 MOPSO_hv = cal_hv(MOPSO_log, REF_POINT)
-print("MOPSO HV: {}".format(MOPSO_hv))
+print("MOPSO HV: {}".format(round(MOPSO_hv, 2)))
 MOEAD_hv = cal_hv(MOEAD_log, REF_POINT)
-print("MOEAD HV: {}".format(MOEAD_hv))
+print("MOEAD HV: {}".format(round(MOEAD_hv, 2)))
 EABCDE_hv = cal_hv(EABCDE_log, REF_POINT)
-print("EABCDE HV: {}".format(EABCDE_hv))
+print("EABCDE HV: {}".format(round(EABCDE_hv, 2)))
 # with open('log_metric/log_hv.txt', 'a') as f:
 #     f.write("{} {} {} {} {} {}\n".format(EABC_hv, NSGA_ii_hv, NSGA_iii_hv, MODE_hv, MOPSO_hv, MOEAD_hv))
 
@@ -636,16 +630,16 @@ for row in SC_log:
 
 pareto_front = fnds(HISTORY)
 EABC_igd = cal_igd(EABC_log, pareto_front)
-print("\nEABC IGD: {}".format(EABC_igd))
+print("\nEABC IGD: {}".format(round(EABC_igd, 2)))
 NSGA_ii_igd = cal_igd(NSGA_ii_log, pareto_front)
-print("NSGA ii IGD: {}".format(NSGA_ii_igd))
+print("NSGA ii IGD: {}".format(round(NSGA_ii_igd, 2)))
 NSGA_iii_igd = cal_igd(NSGA_iii_log, pareto_front)
-print("NSGA iii IGD: {}".format(NSGA_iii_igd))
+print("NSGA iii IGD: {}".format(round(NSGA_iii_igd, 2)))
 MODE_igd = cal_igd(MODE_log, pareto_front)
-print("MODE IGD: {}".format(MODE_igd))
+print("MODE IGD: {}".format(round(MODE_igd, 2)))
 MOPSO_igd = cal_igd(MOPSO_log, pareto_front)
-print("MOPSO IGD: {}".format(MOPSO_igd))
+print("MOPSO IGD: {}".format(round(MOPSO_igd, 2)))
 MOEAD_igd = cal_igd(MOEAD_log, pareto_front)
-print("MOEAD IGD: {}".format(MOEAD_igd))
+print("MOEAD IGD: {}".format(round(MOEAD_igd, 2)))
 EABCDE_igd = cal_igd(EABCDE_log, pareto_front)
-print("EABCDE IGD: {}".format(EABCDE_igd))
+print("EABCDE IGD: {}".format(round(EABCDE_igd, 2)))
