@@ -426,12 +426,23 @@ for i in range(p_s):
     if S_n == None and S_m == None:
         print("Can't find any path at iterator: {}".format(i))
         continue
-    POP.append(S_n)
+    obj_n = cal_objective(S_n, tree)
+    obj_m = cal_objective(S_m, tree)
+    
+    # Check which solution dominate other one
+    if check_dominate(obj_n, obj_m):
+        POP.append(S_n)
+    elif check_dominate(obj_m, obj_n):
+        POP.append(S_m)
+    else:
+        if S_n[0] < S_m[0]:
+            POP.append(S_n)
+        else:
+            POP.append(S_m)
     stagnation_count.append(0)
 
 tmp_start_time = time.time()
 end_time = time.time()
-print("\nHybrid initialization stratery session end!\nTime process: {}\n".format(end_time - start_time))
 
 circle = 1
 while circle <= MAX_CIRCLE and end_time - tmp_start_time <= TIME_LIMIT:
@@ -585,7 +596,6 @@ while circle <= MAX_CIRCLE and end_time - tmp_start_time <= TIME_LIMIT:
 
     circle = circle + 1
     end_time = time.time()
-print("\nEABCDE session end at iterator: {}, time process: {}\n".format(circle - 1, end_time - tmp_start_time))
 
 indi_list = []
 for path in POP:
