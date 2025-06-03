@@ -173,6 +173,7 @@ def run_mode(tree, obstacles, indi_list, pop_size, max_gen, F, CR, cal_fitness):
     POP = []
     for ind in mode_pop.indivs:
         POP.append(ind.chromosome)
+    return POP
     NDS_archive_idx, POP_ns_idx, list_obj = fast_non_dominated_sort(POP, tree)
     # print("\nEND algorithm, show result below:\n")
     # for i in range(len(NDS_archive_idx)):
